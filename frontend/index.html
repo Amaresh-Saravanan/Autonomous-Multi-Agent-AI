@@ -38,6 +38,11 @@
   .card.sev-critical { border-left-color: var(--sev-critical); box-shadow: 0 0 12px rgba(239,68,68,.35); }
   .card .action { font-weight: 600; font-size: 14px; }
   .card .why { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .card .actions { margin-top: 8px; display: flex; gap: 8px; }
+  .card .actions button {
+    cursor: pointer; font-size: 11px; padding: 4px 10px; border-radius: 6px;
+    border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text-primary);
+  }
   @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
   #send-form { position: absolute; bottom: 16px; left: 16px; background: var(--bg-surface);
     backdrop-filter: blur(6px); border: 1px solid var(--border); border-radius: 12px;
@@ -58,6 +63,9 @@
   </div>
 
   <div id="panel">
+    <h2>Alerts</h2>
+    <div id="alerts-feed"></div>
+    <hr style="border-color: var(--border); margin: 12px 0;" />
     <h2>Recommendations</h2>
     <div id="status">connecting…</div>
     <div id="feed"></div>
@@ -80,8 +88,11 @@
 
     const statusEl = document.getElementById("status");
     const feedEl = document.getElementById("feed");
+    const alertsFeedEl = document.getElementById("alerts-feed");
     let currentIncidentId = null;
     let severityLayerReady = false;
+
+    const recsById = new Map();
 
     // DS-1 severity heat layer (tracker 1.10): color ramp matches the .card
     // severity classes above — one severity language across map + feed.
@@ -119,16 +130,60 @@
       return "";
     }
 
-    function renderRec(rec) {
+    async function decide(recId, action) {
+      try {
+        const res = await fetch(`${API}/recommendations/${recId}/${action}`, { method: "POST" });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        const updated = await res.json();
+        recsById.set(updated.rec_id, updated);
+        renderFeed();
+        renderAlerts();
+      } catch (err) {
+        alert("Failed to update recommendation");
+      }
+    }
+
+    function renderCard(rec) {
       const div = document.createElement("div");
       div.className = "card " + sevClass(rec.severity);
       div.innerHTML = `
         <div class="action">${rec.agent_id} · ${rec.action}</div>
         <div class="why">${rec.rationale}</div>
-        <div class="why">confidence ${rec.confidence.toFixed(2)}</div>
+        <div class="why">confidence ${rec.confidence.toFixed(2)} · ${rec.status}</div>
       `;
-      feedEl.prepend(div);
+      if (rec.status === "pending") {
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        const approveBtn = document.createElement("button");
+        approveBtn.textContent = "Approve";
+        approveBtn.addEventListener("click", () => decide(rec.rec_id, "approve"));
+        const rejectBtn = document.createElement("button");
+        rejectBtn.textContent = "Reject";
+        rejectBtn.addEventListener("click", () => decide(rec.rec_id, "reject"));
+        actions.appendChild(approveBtn);
+        actions.appendChild(rejectBtn);
+        div.appendChild(actions);
+      }
+      return div;
+    }
 
+    function sortedRecs() {
+      return [...recsById.values()].sort((a, b) => b.created_at.localeCompare(a.created_at));
+    }
+
+    function renderFeed() {
+      feedEl.innerHTML = "";
+      sortedRecs().forEach((rec) => feedEl.appendChild(renderCard(rec)));
+    }
+
+    function renderAlerts() {
+      alertsFeedEl.innerHTML = "";
+      sortedRecs()
+        .filter((rec) => rec.severity >= 0.5 && rec.status === "pending")
+        .forEach((rec) => alertsFeedEl.appendChild(renderCard(rec)));
+    }
+
+    function addMarker(rec) {
       if (rec.geo && rec.geo.coordinates && rec.geo.coordinates.length === 2) {
         new maplibregl.Marker({ color: rec.severity >= 0.85 ? "#EF4444" : "#F97316" })
           .setLngLat(rec.geo.coordinates)
@@ -137,13 +192,22 @@
       }
     }
 
+    function ingestRecommendations(recs) {
+      recs.forEach((rec) => {
+        recsById.set(rec.rec_id, rec);
+        addMarker(rec);
+      });
+      renderFeed();
+      renderAlerts();
+    }
+
     function connectWS() {
       const ws = new WebSocket(API.replace("http", "ws") + "/ws/alerts");
       ws.onopen = () => (statusEl.textContent = "live");
       ws.onclose = () => { statusEl.textContent = "reconnecting…"; setTimeout(connectWS, 2000); };
       ws.onmessage = (evt) => {
         const msg = JSON.parse(evt.data);
-        msg.recommendations.forEach(renderRec);
+        ingestRecommendations(msg.recommendations);
         currentIncidentId = msg.incident_id;
         refreshSeverity(currentIncidentId);
       };
@@ -162,7 +226,7 @@
         }),
       });
       const body = await res.json();
-      body.recommendations.forEach(renderRec); // also render via HTTP response, not just WS
+      ingestRecommendations(body.recommendations); // also render via HTTP response, not just WS
       currentIncidentId = body.incident_id;
       refreshSeverity(currentIncidentId);
     });
