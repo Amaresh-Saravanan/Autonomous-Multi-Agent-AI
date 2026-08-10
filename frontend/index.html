@@ -60,6 +60,7 @@
 
   <div id="layers">
     <label><input type="checkbox" id="toggle-severity" checked /> Severity heat layer</label>
+    <label><input type="checkbox" id="toggle-routes" checked /> Routes</label>
   </div>
 
   <div id="panel">
@@ -109,6 +110,16 @@
         },
       });
       severityLayerReady = true;
+
+      map.addSource("routes", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({
+        id: "routes-line", type: "line", source: "routes",
+        paint: {
+          "line-color": ["case", ["get", "blocked"], "#EF4444", "#22C55E"],
+          "line-width": 3,
+          "line-dasharray": ["case", ["get", "blocked"], ["literal", [2, 2]], ["literal", [1, 0]]],
+        },
+      });
     });
 
     document.getElementById("toggle-severity").addEventListener("change", (e) => {
@@ -116,6 +127,21 @@
         map.setLayoutProperty("severity-fill", "visibility", e.target.checked ? "visible" : "none");
       }
     });
+
+    document.getElementById("toggle-routes").addEventListener("change", (e) => {
+      map.setLayoutProperty("routes-line", "visibility", e.target.checked ? "visible" : "none");
+    });
+
+    const routesByIncident = {};
+
+    function refreshRoutes() {
+      const features = Object.entries(routesByIncident).map(([incidentId, r]) => ({
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: r.route_line },
+        properties: { incident_id: incidentId, blocked: r.blocked },
+      }));
+      map.getSource("routes").setData({ type: "FeatureCollection", features });
+    }
 
     async function refreshSeverity(incidentId) {
       if (!severityLayerReady || !incidentId) return;
@@ -193,12 +219,21 @@
     }
 
     function ingestRecommendations(recs) {
+      let routesChanged = false;
       recs.forEach((rec) => {
         recsById.set(rec.rec_id, rec);
         addMarker(rec);
+        if (rec.agent_id === "AG-6" && rec.details && rec.details.route_line) {
+          routesByIncident[rec.incident_id] = {
+            route_line: rec.details.route_line,
+            blocked: !!rec.details.blocked,
+          };
+          routesChanged = true;
+        }
       });
       renderFeed();
       renderAlerts();
+      if (routesChanged) refreshRoutes();
     }
 
     function connectWS() {
