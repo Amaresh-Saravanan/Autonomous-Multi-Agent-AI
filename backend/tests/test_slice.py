@@ -21,6 +21,15 @@ def test_health():
     assert r.json()["status"] == "ok"
 
 
+def test_resources_endpoint_returns_all_categories():
+    r = client.get("/resources")
+    assert r.status_code == 200
+    body = r.json()
+    for key in ["hospitals", "shelters", "teams", "ambulances"]:
+        assert key in body, f"missing {key} in /resources response"
+        assert len(body[key]) > 0, f"{key} list is empty"
+
+
 def test_normal_reading_does_not_raise_severity():
     r = client.post("/ingest/iot", json={
         "sensor_id": "wl-001", "metric": "water_level",
@@ -61,6 +70,7 @@ def test_critical_reading_raises_severity_with_evidence():
 
 if __name__ == "__main__":
     test_health()
+    test_resources_endpoint_returns_all_categories()
     test_normal_reading_does_not_raise_severity()
     test_critical_reading_raises_severity_with_evidence()
     print("OK: Phase 0 vertical slice self-test passed.")

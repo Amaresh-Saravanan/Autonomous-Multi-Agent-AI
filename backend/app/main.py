@@ -14,6 +14,7 @@ from . import orchestrator
 from . import recommendations
 from . import severity_grid
 from .normalizers import normalize
+from .resources import HOSPITALS, SHELTERS, TEAMS, AMBULANCES
 from agents import citizen as citizen_agent
 
 app = FastAPI(title="Disaster Response Platform - Phase 2 slice")
@@ -27,6 +28,16 @@ _ws_clients: list[WebSocket] = []
 @app.get("/health")
 def health():
     return {"status": "ok", "using_redis": blackboard.using_redis()}
+
+
+@app.get("/resources")
+def get_resources():
+    return {
+        "hospitals": HOSPITALS,
+        "shelters": SHELTERS,
+        "teams": TEAMS,
+        "ambulances": AMBULANCES,
+    }
 
 
 @app.post("/ingest/{source_type}")
