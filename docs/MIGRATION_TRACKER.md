@@ -63,7 +63,7 @@ Goal: the platform recommends *action*, not just awareness.
 
 | ID | Task | Priority | Status | Notes |
 |----|------|----------|--------|-------|
-| 2.1 | LangGraph orchestrator (trigger routing, agent scheduling) | P0 | ☐ | current: simple ordered list in main.py, not LangGraph yet |
+| 2.1 | LangGraph orchestrator (trigger routing, agent scheduling) | P0 | ◐ | agent scheduling done via app/orchestrator.py (StateGraph, fixed order) — trigger routing (selective agent scheduling) still deferred |
 | 2.2 | Conflict surfacing (two agents disagree → human) | P0 | ☐ | AC-4 |
 | 2.3 | AG-3 Rescue Planning (priority + team assignment) | P0 | ☑ | agents/rescue.py |
 | 2.4 | OSRM/Valhalla self-hosted + blocked-road edge weighting | P0 | ☐ | AG-6 uses straight-line + radius check, not real OSRM |

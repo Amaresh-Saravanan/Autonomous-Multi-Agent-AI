@@ -10,16 +10,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import audit
 from . import blackboard
+from . import orchestrator
 from . import recommendations
 from . import severity_grid
 from .normalizers import normalize
-from agents.disaster import DisasterAssessmentAgent
-from agents.damage import DamageAssessmentAgent
-from agents.rescue import RescuePlanningAgent
-from agents.medical import MedicalCoordinationAgent
-from agents.allocation import ResourceAllocationAgent
-from agents.route import RouteOptimizationAgent
-from agents.situational import SituationalIntelligenceAgent
 from agents import citizen as citizen_agent
 
 app = FastAPI(title="Disaster Response Platform - Phase 2 slice")
@@ -27,17 +21,6 @@ app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
 
-# ponytail: order = data dependency chain (TDD 4.3). Each agent reads
-# upstream agents' blackboard output; AG-8 summarizes everything last.
-AGENTS = [
-    DisasterAssessmentAgent(),
-    DamageAssessmentAgent(),
-    RescuePlanningAgent(),
-    MedicalCoordinationAgent(),
-    ResourceAllocationAgent(),
-    RouteOptimizationAgent(),
-    SituationalIntelligenceAgent(),
-]
 _ws_clients: list[WebSocket] = []
 
 
@@ -51,18 +34,7 @@ async def ingest(source_type: str, raw: dict):
     event = normalize(source_type, raw)
     incident_id = raw.get("incident_id", "default")
 
-    recs = []
-    for agent in AGENTS:
-        state = blackboard.get(incident_id)  # refresh state after each agent
-        rec = agent.run(incident_id, [event], state)
-        rec_dict = rec.model_dump()
-        recs.append(rec_dict)
-        blackboard.merge(incident_id, {agent.id: rec_dict})
-        recommendations.record(rec_dict)
-        # DS-1 severity heat-map (tracker 1.5): AG-1 defines disaster severity.
-        if agent.id == "AG-1" and rec.geo.type == "Point" and len(rec.geo.coordinates) == 2:
-            lon, lat = rec.geo.coordinates
-            severity_grid.update(incident_id, lat, lon, rec.severity)
+    recs = orchestrator.run(incident_id, [event])
 
     for client in list(_ws_clients):
         try:
