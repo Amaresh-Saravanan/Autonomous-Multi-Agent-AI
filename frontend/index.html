@@ -61,6 +61,7 @@
   <div id="layers">
     <label><input type="checkbox" id="toggle-severity" checked /> Severity heat layer</label>
     <label><input type="checkbox" id="toggle-routes" checked /> Routes</label>
+    <label><input type="checkbox" id="toggle-resources" checked /> Resources</label>
   </div>
 
   <div id="panel">
@@ -131,6 +132,33 @@
     document.getElementById("toggle-routes").addEventListener("change", (e) => {
       map.setLayoutProperty("routes-line", "visibility", e.target.checked ? "visible" : "none");
     });
+
+    document.getElementById("toggle-resources").addEventListener("change", (e) => {
+      resourceMarkers.forEach((m) => {
+        m.getElement().style.display = e.target.checked ? "" : "none";
+      });
+    });
+
+    const RESOURCE_COLORS = { hospitals: "#EF4444", shelters: "#3B82F6", teams: "#A855F7", ambulances: "#F97316" };
+    const resourceMarkers = [];
+
+    async function loadResources() {
+      try {
+        const res = await fetch(`${API}/resources`);
+        const data = await res.json();
+        Object.entries(RESOURCE_COLORS).forEach(([category, color]) => {
+          (data[category] || []).forEach((item) => {
+            const marker = new maplibregl.Marker({ color })
+              .setLngLat([item.lon, item.lat])
+              .setPopup(new maplibregl.Popup().setText(`${category.slice(0, -1)}: ${item.name || item.id}`))
+              .addTo(map);
+            resourceMarkers.push(marker);
+          });
+        });
+      } catch (err) {
+        console.error("Failed to load resources", err);
+      }
+    }
 
     const routesByIncident = {};
 
@@ -248,6 +276,7 @@
       };
     }
     connectWS();
+    loadResources();
 
     document.getElementById("send-form").addEventListener("submit", async (e) => {
       e.preventDefault();
