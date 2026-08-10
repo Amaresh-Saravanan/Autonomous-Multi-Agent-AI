@@ -1,0 +1,171 @@
+<!doctype html>
+<!--
+  Phase 0 frontend shell (tracker 0.8/0.9). Plain HTML+JS+MapLibre via CDN —
+  no npm/Next.js build step required to see the loop work. The full
+  Next.js + Tailwind + framer-motion + react-grid-layout stack from
+  UX_DESIGN.md is Phase 1+; this proves ingest -> agent -> map, nothing more.
+-->
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<title>EOC Dashboard — Phase 0 slice</title>
+<link href="https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.js"></script>
+<style>
+  :root[data-theme="dark"] {
+    --bg-base: #0B0E14; --bg-surface: rgba(20,25,48,0.85);
+    --border: #2A3142; --text-primary: #E6EAF2; --text-muted: #8A93A6;
+    --sev-low: #22C55E; --sev-moderate: #EAB308; --sev-high: #F97316; --sev-critical: #EF4444;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg-base); color: var(--text-primary);
+         font-family: system-ui, -apple-system, sans-serif; }
+  #map { position: absolute; inset: 0; }
+  #panel {
+    position: absolute; top: 16px; right: 16px; width: 340px; max-height: 80vh;
+    overflow-y: auto; background: var(--bg-surface); backdrop-filter: blur(6px);
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.45);
+  }
+  #panel h2 { margin: 0 0 8px; font-size: 16px; }
+  #status { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .card {
+    border-left: 4px solid var(--sev-low); background: rgba(28,34,48,0.6);
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 10px;
+    animation: slideIn 200ms ease-out;
+  }
+  .card.sev-high { border-left-color: var(--sev-high); }
+  .card.sev-critical { border-left-color: var(--sev-critical); box-shadow: 0 0 12px rgba(239,68,68,.35); }
+  .card .action { font-weight: 600; font-size: 14px; }
+  .card .why { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  #send-form { position: absolute; bottom: 16px; left: 16px; background: var(--bg-surface);
+    backdrop-filter: blur(6px); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; font-size: 12px; }
+  #send-form input { width: 80px; margin-right: 8px; }
+  #send-form button { cursor: pointer; }
+  #layers { position: absolute; top: 16px; left: 16px; background: var(--bg-surface);
+    backdrop-filter: blur(6px); border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px 12px; font-size: 12px; }
+  #layers label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div id="layers">
+    <label><input type="checkbox" id="toggle-severity" checked /> Severity heat layer</label>
+  </div>
+
+  <div id="panel">
+    <h2>Recommendations</h2>
+    <div id="status">connecting…</div>
+    <div id="feed"></div>
+  </div>
+
+  <form id="send-form">
+    Simulate water-level reading:
+    <input id="reading" type="number" step="0.1" value="5.5" />
+    <button type="submit">Send critical spike</button>
+  </form>
+
+  <script>
+    const API = "http://localhost:8000";
+    const map = new maplibregl.Map({
+      container: "map",
+      style: "https://demotiles.maplibre.org/style.json",
+      center: [80.2707, 13.0827],
+      zoom: 10,
+    });
+
+    const statusEl = document.getElementById("status");
+    const feedEl = document.getElementById("feed");
+    let currentIncidentId = null;
+    let severityLayerReady = false;
+
+    // DS-1 severity heat layer (tracker 1.10): color ramp matches the .card
+    // severity classes above — one severity language across map + feed.
+    map.on("load", () => {
+      map.addSource("severity", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({
+        id: "severity-fill", type: "fill", source: "severity",
+        paint: {
+          "fill-color": [
+            "interpolate", ["linear"], ["get", "severity"],
+            0, "#22C55E", 0.5, "#EAB308", 0.85, "#F97316", 1, "#EF4444",
+          ],
+          "fill-opacity": 0.35,
+        },
+      });
+      severityLayerReady = true;
+    });
+
+    document.getElementById("toggle-severity").addEventListener("change", (e) => {
+      if (severityLayerReady) {
+        map.setLayoutProperty("severity-fill", "visibility", e.target.checked ? "visible" : "none");
+      }
+    });
+
+    async function refreshSeverity(incidentId) {
+      if (!severityLayerReady || !incidentId) return;
+      const res = await fetch(`${API}/incidents/${incidentId}/severity`);
+      const geojson = await res.json();
+      map.getSource("severity").setData(geojson);
+    }
+
+    function sevClass(sev) {
+      if (sev >= 0.85) return "sev-critical";
+      if (sev >= 0.5) return "sev-high";
+      return "";
+    }
+
+    function renderRec(rec) {
+      const div = document.createElement("div");
+      div.className = "card " + sevClass(rec.severity);
+      div.innerHTML = `
+        <div class="action">${rec.agent_id} · ${rec.action}</div>
+        <div class="why">${rec.rationale}</div>
+        <div class="why">confidence ${rec.confidence.toFixed(2)}</div>
+      `;
+      feedEl.prepend(div);
+
+      if (rec.geo && rec.geo.coordinates && rec.geo.coordinates.length === 2) {
+        new maplibregl.Marker({ color: rec.severity >= 0.85 ? "#EF4444" : "#F97316" })
+          .setLngLat(rec.geo.coordinates)
+          .setPopup(new maplibregl.Popup().setText(rec.rationale))
+          .addTo(map);
+      }
+    }
+
+    function connectWS() {
+      const ws = new WebSocket(API.replace("http", "ws") + "/ws/alerts");
+      ws.onopen = () => (statusEl.textContent = "live");
+      ws.onclose = () => { statusEl.textContent = "reconnecting…"; setTimeout(connectWS, 2000); };
+      ws.onmessage = (evt) => {
+        const msg = JSON.parse(evt.data);
+        msg.recommendations.forEach(renderRec);
+        currentIncidentId = msg.incident_id;
+        refreshSeverity(currentIncidentId);
+      };
+    }
+    connectWS();
+
+    document.getElementById("send-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const reading = parseFloat(document.getElementById("reading").value);
+      const res = await fetch(API + "/ingest/iot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sensor_id: "wl-042", metric: "water_level", reading,
+          unit: "m", lat: 13.0827, lon: 80.2707, incident_id: "demo-1",
+        }),
+      });
+      const body = await res.json();
+      body.recommendations.forEach(renderRec); // also render via HTTP response, not just WS
+      currentIncidentId = body.incident_id;
+      refreshSeverity(currentIncidentId);
+    });
+  </script>
+</body>
+</html>
