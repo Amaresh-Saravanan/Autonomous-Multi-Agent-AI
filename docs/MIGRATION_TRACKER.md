@@ -88,7 +88,7 @@ Goal: multilingual citizen loop, medical coordination, security, multi-agency.
 
 | ID | Task | Priority | Status | Notes |
 |----|------|----------|--------|-------|
-| 3.1 | AG-4 Medical Coordination (hospital/ambulance dispatch) | P1 | ☐ | |
+| 3.1 | AG-4 Medical Coordination (hospital/ambulance dispatch) | P1 | ☑ | shipped via tracker 2.12 (agents/medical.py), pulled forward from Phase 3 into Phase 2 |
 | 3.2 | AG-7 Citizen Assistance (multilingual chat, RAG on official guidance) | P1 | ☐ | UI-6 |
 | 3.3 | Citizen report ingestion + verification/trust pipeline | P1 | ☐ | SEC-4 |
 | 3.4 | RBAC: users, roles, agencies, scoped views | P0 | ☐ | SEC-1 |
