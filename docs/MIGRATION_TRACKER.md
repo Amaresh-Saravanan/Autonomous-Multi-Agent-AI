@@ -90,7 +90,7 @@ Goal: multilingual citizen loop, medical coordination, security, multi-agency.
 |----|------|----------|--------|-------|
 | 3.1 | AG-4 Medical Coordination (hospital/ambulance dispatch) | P1 | ☑ | shipped via tracker 2.12 (agents/medical.py), pulled forward from Phase 3 into Phase 2 |
 | 3.2 | AG-7 Citizen Assistance (multilingual chat, RAG on official guidance) | P1 | ☐ | UI-6 |
-| 3.3 | Citizen report ingestion + verification/trust pipeline | P1 | ☐ | SEC-4 |
+| 3.3 | Citizen report ingestion + verification/trust pipeline | P1 | ☑ | `app/citizen_verification.py` (score_confidence heuristic: threshold diff vs AG-1 severity) + `normalize_citizen` in `app/normalizers.py`, registered under `NORMALIZERS["citizen"]`; does not wake orchestrator agents (see `docs/superpowers/specs/2026-08-13-citizen-verification-design.md`) |
 | 3.4 | RBAC: users, roles, agencies, scoped views | P0 | ☐ | SEC-1 |
 | 3.5 | Multi-agency dashboard views | P1 | ☐ | UI-5 |
 | 3.6 | Encryption in transit + at rest; secrets management | P0 | ☐ | SEC-3 |
