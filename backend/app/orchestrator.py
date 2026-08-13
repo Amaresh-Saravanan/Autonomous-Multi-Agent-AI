@@ -105,29 +105,53 @@ def _build_graph():
 GRAPH = _build_graph()
 
 
-def _detect_conflicts(state: dict) -> list[dict]:
-    """AC-4: surface disagreements instead of silently merging them.
-
-    AG-5 (capacity-aware shelter allocation) and AG-6 (distance-only routing)
-    are the one pair that can genuinely target the same resource — a
-    different-shelter answer means evacuees would be sent somewhere AG-5
-    already ruled out (e.g. full), so a human must reconcile it.
-    """
-    ag5_shelter = state.get("AG-5", {}).get("details", {}).get("shelter", {}).get("id")
-    ag6_dest = state.get("AG-6", {}).get("details", {}).get("destination", {}).get("id")
-    if not ag5_shelter or not ag6_dest or ag5_shelter == ag6_dest:
-        return []
-    return [{
-        "agents": ["AG-5", "AG-6"],
+# AC-4: surface agent disagreements instead of silently merging them. One
+# rule today — AG-5 (capacity-aware shelter allocation) vs AG-6
+# (distance-only routing) are the one pair that can genuinely target the same
+# resource; a different-shelter answer means evacuees would be sent somewhere
+# AG-5 already ruled out (e.g. full), so a human must reconcile it. Table is
+# intentionally small; append future rules here rather than building a DSL.
+CONFLICT_RULES = [
+    {
+        "agents": ("AG-5", "AG-6"),
         "target": "evacuation_shelter",
-        "values": {"AG-5": ag5_shelter, "AG-6": ag6_dest},
-        "recs": [state["AG-5"]["rec_id"], state["AG-6"]["rec_id"]],
-        "rationale": (
-            f"AG-5 allocates evacuees to shelter {ag5_shelter} (capacity-aware) "
-            f"but AG-6 routes them to shelter {ag6_dest} (distance-only) — "
-            "human must reconcile."
-        ),
-    }]
+        "paths": (("details", "shelter", "id"), ("details", "destination", "id")),
+        "template": "AG-5 allocates evacuees to shelter {a} (capacity-aware) "
+                     "but AG-6 routes them to shelter {b} (distance-only) — "
+                     "human must reconcile.",
+    },
+]
+
+
+def _get_path(d: dict, path: tuple[str, ...]):
+    cur = d
+    for key in path:
+        if not isinstance(cur, dict):
+            return None
+        cur = cur.get(key)
+    return cur
+
+
+def _detect_conflicts(state: dict) -> list[dict]:
+    conflicts = []
+    for rule in CONFLICT_RULES:
+        a_id, b_id = rule["agents"]
+        a_rec, b_rec = state.get(a_id), state.get(b_id)
+        if not a_rec or not b_rec:
+            continue
+        a_val = _get_path(a_rec, rule["paths"][0])
+        b_val = _get_path(b_rec, rule["paths"][1])
+        if not a_val or not b_val or a_val == b_val:
+            continue
+        conflicts.append({
+            "agents": [a_id, b_id],
+            "target": rule["target"],
+            "values": {a_id: a_val, b_id: b_val},
+            "recs": [a_rec["rec_id"], b_rec["rec_id"]],
+            "created_at": {a_id: a_rec.get("created_at"), b_id: b_rec.get("created_at")},
+            "rationale": rule["template"].format(a=a_val, b=b_val),
+        })
+    return conflicts
 
 
 def run(incident_id: str, events: list[Event]) -> list[dict]:
