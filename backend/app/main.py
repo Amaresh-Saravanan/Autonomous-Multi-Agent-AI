@@ -8,6 +8,7 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
+from . import alerts
 from . import audit
 from . import blackboard
 from . import orchestrator
@@ -47,11 +48,17 @@ async def ingest(source_type: str, raw: dict):
 
     recs = orchestrator.run(incident_id, [event])
 
-    for client in list(_ws_clients):
-        try:
-            await client.send_json({"incident_id": incident_id, "recommendations": recs})
-        except Exception:  # noqa: BLE001 - drop dead clients
-            _ws_clients.remove(client)
+    if alerts.should_push(incident_id, recs):
+        conflicts = blackboard.get(incident_id).get("conflicts", [])
+        for client in list(_ws_clients):
+            try:
+                await client.send_json({
+                    "incident_id": incident_id,
+                    "recommendations": recs,
+                    "conflicts": conflicts,
+                })
+            except Exception:  # noqa: BLE001 - drop dead clients
+                _ws_clients.remove(client)
 
     return {"event_id": event.event_id, "incident_id": incident_id, "recommendations": recs}
 
@@ -65,6 +72,12 @@ def get_incident(incident_id: str):
 def get_severity_grid(incident_id: str):
     """DS-1 severity heat-map as GeoJSON (TDD 5)."""
     return severity_grid.as_geojson(incident_id)
+
+
+@app.get("/incidents/{incident_id}/conflicts")
+def get_conflicts(incident_id: str):
+    """Tracker 2.2 / AC-4: surfaced agent disagreements for this incident."""
+    return blackboard.get(incident_id).get("conflicts", [])
 
 
 @app.get("/recommendations")

@@ -63,17 +63,17 @@ Goal: the platform recommends *action*, not just awareness.
 
 | ID | Task | Priority | Status | Notes |
 |----|------|----------|--------|-------|
-| 2.1 | LangGraph orchestrator (trigger routing, agent scheduling) | P0 | ◐ | agent scheduling done via app/orchestrator.py (StateGraph, fixed order) — trigger routing (selective agent scheduling) still deferred |
-| 2.2 | Conflict surfacing (two agents disagree → human) | P0 | ☐ | AC-4 |
+| 2.1 | LangGraph orchestrator (trigger routing, agent scheduling) | P0 | ☑ | app/orchestrator.py (StateGraph, fixed order) + `AGENT_EVENT_TYPES`/`_should_run()` gate which agents run per event batch; currently a no-op on real `/ingest/*` traffic since normalizers.py only registers iot/weather/satellite and AG-3..AG-6 already cover all three, but mechanism is real and tested (tests/test_scheduling.py) — extension point for drone/social/citizen/gis normalizers |
+| 2.2 | Conflict surfacing (two agents disagree → human) | P0 | ☑ | AC-4 — app/orchestrator.py `_detect_conflicts` now driven by a generalized `CONFLICT_RULES` table (still one rule: AG-5 vs AG-6 shelter mismatch), written to blackboard `conflicts[]`; surfaced via GET /incidents/{id}/conflicts and a `conflicts` key on the /ws/alerts broadcast (app/main.py); tests/test_conflicts.py |
 | 2.3 | AG-3 Rescue Planning (priority + team assignment) | P0 | ☑ | agents/rescue.py |
 | 2.4 | OSRM/Valhalla self-hosted + blocked-road edge weighting | P0 | ☐ | AG-6 uses straight-line + radius check, not real OSRM |
 | 2.5 | AG-6 Route Optimization (evac + vehicle routes) | P0 | ☑ | agents/route.py — straight-line ceiling, see note above |
 | 2.6 | AG-5 Resource Allocation (greedy, not OR-Tools VRP) | P1 | ☑ | agents/allocation.py |
 | 2.7 | Resources registry (hospitals, shelters, teams, supplies) | P0 | ☑ | app/resources.py — synthetic seed, not Postgres |
-| 2.8 | Alert engine: severity threshold → dedup → push | P0 | ☐ | WS push exists per-event; no dedup/threshold engine yet |
+| 2.8 | Alert engine: severity threshold → dedup → push | P0 | ☑ | app/alerts.py — gates /ws/alerts broadcast only (HTTP response + recording unaffected); tests/test_alerts.py |
 | 2.9 | Human approve/reject on recommendations (audited) | P0 | ☑ | AC-5 (approve/reject only, no override state) — app/recommendations.py, app/audit.py, POST /recommendations/{id}/approve, POST /recommendations/{id}/reject, GET /recommendations?status= — API only, no UI button yet (that's 2.11) — tests/test_recommendations.py passing |
 | 2.10 | Predictive impact (next-N-hours from weather+trend) | P1 | ☐ | DS-2 |
-| 2.11 | Dashboard: routes layer, resource layer, alerts panel | P0 | ☐ | frontend still Phase 0 shell (severity only) |
+| 2.11 | Dashboard: routes layer, resource layer, alerts panel | P0 | ☑ | frontend/index.html — routes layer, resource layer, alerts panel + approve/reject buttons; GET /resources |
 | 2.12 | AG-4 Medical Coordination (hospital/ambulance dispatch) | P1 | ☑ | agents/medical.py — pulled forward from Phase 3 |
 | 2.13 | AG-2 Damage Assessment (population-density heuristic) | P0 | ☑ | agents/damage.py — pulled forward from Phase 1 |
 | 2.14 | AG-7 Citizen Assistance (chat, LLM or fallback) | P1 | ☑ | agents/citizen.py + POST /citizen/chat — pulled forward from Phase 3 |
@@ -128,3 +128,4 @@ passes load + security review.
 | 2026-07-24 | Switched agent reasoning from Claude API to Groq (Mixtral-8x7B) + Together.ai (LLaVA) | zero cost; cloud-hosted so teammates need no local GPU/Ollama install; revisit only if accuracy proves insufficient |
 | 2026-07-28 | Severity grid uses lat/lon rounding (geohash-lite), not the h3-py library | avoids a new dependency for what a one-line quantization does; revisit only if variable-size cells are actually needed |
 | 2026-08-06 | Approve/reject audit actor is a fixed "operator" string, not a real identity | RBAC (tracker 3.4) isn't built yet; revisit once users/auth exist |
+| 2026-08-12 | Conflict detection (AC-4) scoped to one real pair — AG-5 vs AG-6 shelter mismatch — not a general cross-agent conflict framework | only pair that targets the same resource today; shelter s-1 seeded at full capacity so it's demoable, not just unit-testable; revisit if more agent pairs need it |
