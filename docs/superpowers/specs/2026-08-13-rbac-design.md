@@ -81,3 +81,35 @@ user's role (unless `admin`) isn't in the allowed set.
 Agency-based data scoping/filtering (3.5), refresh tokens, logout/revocation,
 password reset, persistent user store (Postgres is Phase 3 generally, not
 special-cased here) — none of these have a concrete need yet.
+
+## Addendum (2026-08-13): 3.5 multi-agency dashboard views
+
+Nothing in `Event`/`Recommendation`/blackboard state carried an agency field
+before this item, and building a full agency-routing pipeline (agents
+deciding which agency a recommendation targets) is out of scope here. Scoped-
+down version implemented:
+
+- `Recommendation.target_agency: str | None = None` (`app/models.py`) — `None`
+  means visible to all agencies, since no agent currently sets it.
+- `GET /recommendations` filters results to `target_agency in (user's agency,
+  None)`, except `admin`, who sees everything regardless of `target_agency`
+  (`app/main.py::list_recommendations`).
+- `GET /incidents/{id}` gets no additional filtering in this item — it
+  already requires viewer+ auth from 3.4, and the scoped-down plan targets
+  `GET /recommendations` specifically. Revisit if the blackboard's per-agent
+  payloads start carrying data that shouldn't cross agencies.
+
+Honest gap (marked with a `ponytail:` comment at the filter site): no agent
+sets `target_agency` yet, so the filter is currently a no-op for all real
+recommendations — every recommendation in the system today has
+`target_agency=None` and is visible to every agency. The filter only has
+real, non-uniform data to act on in tests that manually stamp a
+`target_agency` onto a stored recommendation. Wire it for real once an agent
+knows which agency a recommendation should target.
+
+Separately-noted limitation surfaced while writing this item's tests: 3.4's
+`require_role("viewer")` only admits `viewer` and `admin` — an `operator`
+token gets 403 on `GET /recommendations` (and the other viewer+ GETs), not
+the "viewer+" access the endpoint matrix implies. Not fixed here (out of
+scope for 3.5, and changing 3.4's role semantics is a separate decision);
+flagging so it doesn't get mistaken for new breakage.

@@ -39,6 +39,7 @@ class Recommendation(BaseModel):
     status: str = "pending"                 # pending|approved|rejected
     created_at: str = Field(default_factory=_now)
     details: dict = Field(default_factory=dict)  # structured hand-off to downstream agents
+    target_agency: str | None = None        # None = visible to all agencies (tracker 3.5)
 
     def validate_explainable(self) -> None:
         # ponytail: this is the one guard that makes "explainable" real, not a promise

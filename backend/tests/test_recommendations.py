@@ -6,8 +6,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # backend/ on path
 
 from fastapi.testclient import TestClient
 from app.main import app
-from app import audit
-from _auth_helpers import operator_headers, viewer_headers
+from app import audit, recommendations
+from _auth_helpers import admin_headers, operator_headers, viewer_headers
 
 client = TestClient(app)
 
@@ -76,10 +76,43 @@ def test_unknown_recommendation_is_404():
     assert r.status_code == 404
 
 
+# --- tracker 3.5: multi-agency filtering ---
+
+def test_admin_sees_all_recs_regardless_of_target_agency():
+    rec = _make_pending_rec()
+    # Directly set target_agency on the stored rec to a specific agency,
+    # proving admin bypasses the filter (not just "everything is None").
+    stored = recommendations.get(rec["rec_id"])
+    stored["target_agency"] = "regional_health_dept"
+    recommendations.record(stored)
+
+    seen = client.get("/recommendations", headers=admin_headers()).json()
+    assert any(r["rec_id"] == rec["rec_id"] for r in seen)
+
+
+def test_non_admin_sees_only_own_agency_or_unscoped_recs():
+    # viewer_headers() is carol_viewer, agency=regional_health_dept.
+    other_agency_rec = _make_pending_rec()
+    stored = recommendations.get(other_agency_rec["rec_id"])
+    stored["target_agency"] = "city_emergency_mgmt"  # different agency than the viewer
+    recommendations.record(stored)
+
+    own_agency_rec = _make_pending_rec()
+    stored = recommendations.get(own_agency_rec["rec_id"])
+    stored["target_agency"] = "regional_health_dept"  # same agency as the viewer
+    recommendations.record(stored)
+
+    seen = client.get("/recommendations", headers=viewer_headers()).json()
+    assert not any(r["rec_id"] == other_agency_rec["rec_id"] for r in seen)
+    assert any(r["rec_id"] == own_agency_rec["rec_id"] for r in seen)
+
+
 if __name__ == "__main__":
     test_pending_recommendation_is_listed()
     test_approve_flips_status_and_writes_audit_entry()
     test_audit_entries_are_immutable_once_written()
     test_reject_flips_status()
     test_unknown_recommendation_is_404()
+    test_admin_sees_all_recs_regardless_of_target_agency()
+    test_non_admin_sees_only_own_agency_or_unscoped_recs()
     print("OK: recommendation approve/reject + audit tests passed.")

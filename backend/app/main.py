@@ -112,7 +112,13 @@ def get_severity_grid(incident_id: str, user: dict = Depends(auth.require_role("
 
 @app.get("/recommendations")
 def list_recommendations(status: str | None = None, user: dict = Depends(auth.require_role("viewer"))):
-    return recommendations.list_recs(status)
+    recs = recommendations.list_recs(status)
+    if user["role"] == "admin":
+        return recs
+    # ponytail: no agent sets target_agency yet, so this filter is currently a
+    # no-op for all real recommendations (they're all target_agency=None,
+    # visible to everyone); wire it once agents know their target agency.
+    return [r for r in recs if r.get("target_agency") in (user["agency"], None)]
 
 
 def _decide(rec_id: str, new_status: str, actor: str) -> dict:
