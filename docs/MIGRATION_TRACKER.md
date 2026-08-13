@@ -63,8 +63,8 @@ Goal: the platform recommends *action*, not just awareness.
 
 | ID | Task | Priority | Status | Notes |
 |----|------|----------|--------|-------|
-| 2.1 | LangGraph orchestrator (trigger routing, agent scheduling) | P0 | ◐ | agent scheduling done via app/orchestrator.py (StateGraph, fixed order) — trigger routing (selective agent scheduling) still deferred |
-| 2.2 | Conflict surfacing (two agents disagree → human) | P0 | ☑ | AC-4 — app/orchestrator.py `_detect_conflicts` (AG-5 vs AG-6 shelter mismatch), written to blackboard `conflicts[]`, pull-only via existing GET /incidents/{id}; tests/test_conflicts.py |
+| 2.1 | LangGraph orchestrator (trigger routing, agent scheduling) | P0 | ☑ | app/orchestrator.py (StateGraph, fixed order) + `AGENT_EVENT_TYPES`/`_should_run()` gate which agents run per event batch; currently a no-op on real `/ingest/*` traffic since normalizers.py only registers iot/weather/satellite and AG-3..AG-6 already cover all three, but mechanism is real and tested (tests/test_scheduling.py) — extension point for drone/social/citizen/gis normalizers |
+| 2.2 | Conflict surfacing (two agents disagree → human) | P0 | ☑ | AC-4 — app/orchestrator.py `_detect_conflicts` now driven by a generalized `CONFLICT_RULES` table (still one rule: AG-5 vs AG-6 shelter mismatch), written to blackboard `conflicts[]`; surfaced via GET /incidents/{id}/conflicts and a `conflicts` key on the /ws/alerts broadcast (app/main.py); tests/test_conflicts.py |
 | 2.3 | AG-3 Rescue Planning (priority + team assignment) | P0 | ☑ | agents/rescue.py |
 | 2.4 | OSRM/Valhalla self-hosted + blocked-road edge weighting | P0 | ☐ | AG-6 uses straight-line + radius check, not real OSRM |
 | 2.5 | AG-6 Route Optimization (evac + vehicle routes) | P0 | ☑ | agents/route.py — straight-line ceiling, see note above |
