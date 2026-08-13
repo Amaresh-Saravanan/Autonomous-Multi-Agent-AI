@@ -53,9 +53,42 @@
     backdrop-filter: blur(6px); border: 1px solid var(--border); border-radius: 12px;
     padding: 10px 12px; font-size: 12px; }
   #layers label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  #login-overlay { position: fixed; inset: 0; background: var(--bg-base); display: flex;
+    align-items: center; justify-content: center; z-index: 10; }
+  #login-box { background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; width: 280px; }
+  #login-box h2 { margin: 0 0 16px; font-size: 16px; }
+  #login-box input { width: 100%; margin-bottom: 10px; padding: 6px 8px; box-sizing: border-box;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text-primary); }
+  #login-box button { width: 100%; padding: 8px; cursor: pointer; border-radius: 6px;
+    border: 1px solid var(--border); background: rgba(255,255,255,0.08); color: var(--text-primary); }
+  #login-error { color: var(--sev-critical); font-size: 12px; margin-bottom: 8px; min-height: 14px; }
+  #whoami { position: absolute; top: 16px; right: 372px; z-index: 5; font-size: 12px;
+    color: var(--text-muted); background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 10px; display: flex; align-items: center; gap: 8px; }
+  #whoami button { cursor: pointer; font-size: 11px; border: 1px solid var(--border);
+    background: rgba(255,255,255,0.05); color: var(--text-primary); border-radius: 4px; padding: 2px 6px; }
 </style>
 </head>
 <body>
+  <div id="login-overlay">
+    <div id="login-box">
+      <h2>EOC Dashboard login</h2>
+      <div id="login-error"></div>
+      <form id="login-form">
+        <input id="login-username" placeholder="username" autocomplete="username" />
+        <input id="login-password" type="password" placeholder="password" autocomplete="current-password" />
+        <button type="submit">Log in</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="whoami" style="display:none;">
+    <span id="whoami-label"></span>
+    <button id="logout-btn">Log out</button>
+  </div>
+
   <div id="map"></div>
 
   <div id="layers">
@@ -81,6 +114,75 @@
 
   <script>
     const API = "http://localhost:8000";
+
+    // Auth (tracker 3.4 gated most GETs + approve/reject). /ingest and /ws/alerts
+    // stay open on the backend, so they need no token here.
+    let authToken = localStorage.getItem("authToken");
+    let currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+
+    function authHeaders() {
+      return authToken ? { Authorization: "Bearer " + authToken } : {};
+    }
+
+    // Wraps fetch with the bearer token; on 401 (expired/invalid) drops back to login.
+    async function authFetch(url, opts = {}) {
+      const res = await fetch(url, { ...opts, headers: { ...(opts.headers || {}), ...authHeaders() } });
+      if (res.status === 401) {
+        logout();
+        throw new Error("session expired");
+      }
+      return res;
+    }
+
+    function showLogin(message) {
+      document.getElementById("login-error").textContent = message || "";
+      document.getElementById("login-overlay").style.display = "flex";
+      document.getElementById("whoami").style.display = "none";
+    }
+
+    function logout() {
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("currentUser");
+      showLogin();
+    }
+
+    document.getElementById("logout-btn").addEventListener("click", logout);
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("login-username").value;
+      const password = document.getElementById("login-password").value;
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+        if (!res.ok) throw new Error("invalid credentials");
+        const body = await res.json();
+        authToken = body.access_token;
+        // JWT payload (role/agency) is base64 in the token's middle segment — decode
+        // for a "logged in as" label without a round trip to a /me endpoint.
+        currentUser = JSON.parse(atob(authToken.split(".")[1]));
+        localStorage.setItem("authToken", authToken);
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        onAuthenticated();
+      } catch (err) {
+        document.getElementById("login-error").textContent = "Login failed — check username/password.";
+      }
+    });
+
+    function onAuthenticated() {
+      document.getElementById("login-overlay").style.display = "none";
+      document.getElementById("whoami").style.display = "flex";
+      document.getElementById("whoami-label").textContent =
+        `${currentUser.username} (${currentUser.role})`;
+      loadResources();
+      connectWS();
+    }
+
     const map = new maplibregl.Map({
       container: "map",
       style: "https://demotiles.maplibre.org/style.json",
@@ -143,7 +245,7 @@
 
     async function loadResources() {
       try {
-        const res = await fetch(`${API}/resources`);
+        const res = await authFetch(`${API}/resources`);
         const data = await res.json();
         Object.entries(RESOURCE_COLORS).forEach(([category, color]) => {
           (data[category] || []).forEach((item) => {
@@ -172,7 +274,7 @@
 
     async function refreshSeverity(incidentId) {
       if (!severityLayerReady || !incidentId) return;
-      const res = await fetch(`${API}/incidents/${incidentId}/severity`);
+      const res = await authFetch(`${API}/incidents/${incidentId}/severity`);
       const geojson = await res.json();
       map.getSource("severity").setData(geojson);
     }
@@ -185,7 +287,7 @@
 
     async function decide(recId, action) {
       try {
-        const res = await fetch(`${API}/recommendations/${recId}/${action}`, { method: "POST" });
+        const res = await authFetch(`${API}/recommendations/${recId}/${action}`, { method: "POST" });
         if (!res.ok) throw new Error(`status ${res.status}`);
         const updated = await res.json();
         recsById.set(updated.rec_id, updated);
@@ -274,8 +376,11 @@
         refreshSeverity(currentIncidentId);
       };
     }
-    connectWS();
-    loadResources();
+    if (authToken && currentUser) {
+      onAuthenticated();
+    } else {
+      showLogin();
+    }
 
     document.getElementById("send-form").addEventListener("submit", async (e) => {
       e.preventDefault();
