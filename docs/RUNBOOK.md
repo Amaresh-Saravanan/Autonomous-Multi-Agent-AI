@@ -70,7 +70,7 @@ Role hierarchy: `admin > operator > viewer` — a higher role satisfies any lowe
 
 ## Known gaps (honest, not silently closed)
 
-- **`frontend/index.html` has no login flow yet.** Its fetches send no `Authorization` header, so every gated GET now returns 401 from the browser. The dashboard needs a login screen + token storage before it works against this backend again — tracked as a follow-up, out of scope for Phase 3's backend-focused items.
+- ~~`frontend/index.html` has no login flow.~~ **Resolved**: a login overlay now stores the JWT in `localStorage` and sends it as `Authorization: Bearer` on gated fetches (`/resources`, `/incidents/*`, approve/reject); verified end-to-end in a real browser (login, resource load, ingest, approve, logout, bad-credential error, session persistence across reload all confirmed working).
 - **`GET /ws/alerts` is unauthenticated**, outside the RBAC endpoint matrix — anyone can connect and receive live recommendation pushes. Deferred, not forgotten.
 - **Audit logging covers only approve/reject** (`_decide()` in `app/main.py`) — tracker 1.11 ("audit log wired to all state changes") remains open; other state-changing calls (e.g. `/ingest`) aren't individually audited yet.
 - **2.4** (real OSRM routing) and **2.10** (predictive impact) remain accepted/deferred debt from Phase 2 — see the Decisions Log in `docs/MIGRATION_TRACKER.md`.
