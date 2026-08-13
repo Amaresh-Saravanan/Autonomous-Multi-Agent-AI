@@ -5,12 +5,15 @@ push recommendation over WebSocket to any connected dashboard.
 """
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+import time
+
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import alerts
 from . import audit
 from . import blackboard
+from . import metrics
 from . import orchestrator
 from . import recommendations
 from . import severity_grid
@@ -26,9 +29,36 @@ app.add_middleware(
 _ws_clients: list[WebSocket] = []
 
 
+@app.middleware("http")
+async def _record_request_metrics(request: Request, call_next):
+    """Times every request for GET /metrics (tracker 3.8) — one touch point
+    instead of hand-instrumenting each route body."""
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - start) * 1000
+    route = request.scope.get("route")
+    path = route.path if route is not None else request.url.path
+    metrics.record(path, duration_ms)
+    return response
+
+
 @app.get("/health")
 def health():
     return {"status": "ok", "using_redis": blackboard.using_redis()}
+
+
+@app.get("/metrics")
+def get_metrics():
+    """Observability (tracker 3.8): request counts/latency per route plus
+    recommendation acceptance rate = approved / (approved + rejected) among
+    decided recs (pending recs excluded from the ratio's denominator)."""
+    result = metrics.summary()
+    recs = recommendations.list_recs()
+    approved = sum(1 for r in recs if r["status"] == "approved")
+    rejected = sum(1 for r in recs if r["status"] == "rejected")
+    decided = approved + rejected
+    result["recommendation_acceptance_rate"] = (approved / decided) if decided else None
+    return result
 
 
 @app.get("/resources")
