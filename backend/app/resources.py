@@ -10,7 +10,10 @@ HOSPITALS = [
 ]
 
 SHELTERS = [
-    {"id": "s-1", "name": "Community Hall A", "lat": 13.07, "lon": 80.26, "capacity": 300, "occupied": 40},
+    # s-1 seeded at full capacity: it's the nearest shelter to the default
+    # incident coords, so AG-5 (capacity-aware) diverts to s-2 while AG-6
+    # (distance-only routing) still targets it — a real AC-4 conflict.
+    {"id": "s-1", "name": "Community Hall A", "lat": 13.07, "lon": 80.26, "capacity": 300, "occupied": 300},
     {"id": "s-2", "name": "School Ground B", "lat": 13.04, "lon": 80.29, "capacity": 500, "occupied": 120},
 ]
 

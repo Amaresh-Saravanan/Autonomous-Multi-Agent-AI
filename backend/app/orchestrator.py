@@ -78,6 +78,33 @@ def _build_graph():
 GRAPH = _build_graph()
 
 
+def _detect_conflicts(state: dict) -> list[dict]:
+    """AC-4: surface disagreements instead of silently merging them.
+
+    AG-5 (capacity-aware shelter allocation) and AG-6 (distance-only routing)
+    are the one pair that can genuinely target the same resource — a
+    different-shelter answer means evacuees would be sent somewhere AG-5
+    already ruled out (e.g. full), so a human must reconcile it.
+    """
+    ag5_shelter = state.get("AG-5", {}).get("details", {}).get("shelter", {}).get("id")
+    ag6_dest = state.get("AG-6", {}).get("details", {}).get("destination", {}).get("id")
+    if not ag5_shelter or not ag6_dest or ag5_shelter == ag6_dest:
+        return []
+    return [{
+        "agents": ["AG-5", "AG-6"],
+        "target": "evacuation_shelter",
+        "values": {"AG-5": ag5_shelter, "AG-6": ag6_dest},
+        "recs": [state["AG-5"]["rec_id"], state["AG-6"]["rec_id"]],
+        "rationale": (
+            f"AG-5 allocates evacuees to shelter {ag5_shelter} (capacity-aware) "
+            f"but AG-6 routes them to shelter {ag6_dest} (distance-only) — "
+            "human must reconcile."
+        ),
+    }]
+
+
 def run(incident_id: str, events: list[Event]) -> list[dict]:
     result = GRAPH.invoke({"incident_id": incident_id, "events": events, "recs": []})
+    conflicts = _detect_conflicts(blackboard.get(incident_id))
+    blackboard.merge(incident_id, {"conflicts": conflicts})
     return result["recs"]
