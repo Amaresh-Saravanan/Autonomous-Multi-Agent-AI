@@ -111,12 +111,19 @@ def get_current_user(authorization: str | None = Header(default=None)) -> dict:
     return payload
 
 
+_ROLE_RANK = {"viewer": 0, "operator": 1, "admin": 2}
+
+
 def require_role(*roles: str):
-    """Dependency factory: 403 unless the current user's role is in `roles`
-    (admin always satisfies any role requirement)."""
+    """Dependency factory: 403 unless the current user's role rank is >= the
+    lowest rank among `roles` — hierarchy is admin > operator > viewer, so
+    e.g. require_role("viewer") also admits operator and admin (fixes a bug
+    where an operator token got 403 on viewer+ routes; see
+    docs/superpowers/specs/2026-08-13-rbac-design.md)."""
+    min_rank = min(_ROLE_RANK[r] for r in roles)
 
     def _checker(user: dict = Depends(get_current_user)) -> dict:
-        if user["role"] != "admin" and user["role"] not in roles:
+        if _ROLE_RANK.get(user["role"], -1) < min_rank:
             raise HTTPException(status_code=403, detail="insufficient role")
         return user
 

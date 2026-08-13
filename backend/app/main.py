@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import time
 
+import os
+
 from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -22,9 +24,18 @@ from .normalizers import normalize
 from .resources import HOSPITALS, SHELTERS, TEAMS, AMBULANCES
 from agents import citizen as citizen_agent
 
+# frontend/index.html has no dev server -- it's opened directly as a file://
+# URL, which browsers send as the literal Origin "null", so no real hostname
+# ever belongs in this list for the current frontend. Access control here is
+# a Bearer token (app/auth.py), not a cookie, so CORS isn't the security
+# boundary anyway -- default stays permissive-but-not-wildcard so a stray
+# webpage can't ride a logged-in user's cookies (defense in depth), and is
+# still overridable via env for a real deployment with a hosted frontend.
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "null,http://localhost:8000").split(",")
+
 app = FastAPI(title="Disaster Response Platform - Phase 2 slice")
 app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+    CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["*"], allow_headers=["*"],
 )
 
 _ws_clients: list[WebSocket] = []
