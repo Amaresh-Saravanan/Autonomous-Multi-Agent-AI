@@ -89,7 +89,7 @@ Goal: multilingual citizen loop, medical coordination, security, multi-agency.
 | ID | Task | Priority | Status | Notes |
 |----|------|----------|--------|-------|
 | 3.1 | AG-4 Medical Coordination (hospital/ambulance dispatch) | P1 | ☑ | shipped via tracker 2.12 (agents/medical.py), pulled forward from Phase 3 into Phase 2 |
-| 3.2 | AG-7 Citizen Assistance (multilingual chat, RAG on official guidance) | P1 | ☐ | UI-6 |
+| 3.2 | AG-7 Citizen Assistance (multilingual chat, RAG on official guidance) | P1 | ☑ | Minimal RAG added to `agents/citizen.py`: module-level `CORPUS` (7 synthetic guidance docs) + `_retrieve()` (stdlib keyword-overlap scoring, no embeddings/vector store) wired into both the LLM prompt and the rule-based fallback reply. Tests in `tests/test_citizen_rag.py`. `ponytail:` on `_retrieve` — naive keyword overlap, upgrade to embeddings once corpus outgrows ~20-30 docs or paraphrases start missing. UI-6 |
 | 3.3 | Citizen report ingestion + verification/trust pipeline | P1 | ☐ | SEC-4 |
 | 3.4 | RBAC: users, roles, agencies, scoped views | P0 | ☐ | SEC-1 |
 | 3.5 | Multi-agency dashboard views | P1 | ☐ | UI-5 |
