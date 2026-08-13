@@ -5,6 +5,8 @@ following the same shape: raw payload in, Event out.
 """
 from __future__ import annotations
 from .models import Event, Geo
+from . import blackboard
+from . import citizen_verification
 
 
 def normalize_iot(raw: dict) -> Event:
@@ -64,10 +66,37 @@ def normalize_satellite(raw: dict) -> Event:
     )
 
 
+def normalize_citizen(raw: dict) -> Event:
+    """raw example: {"reporter_id": "citizen-1", "claimed_severity": 0.65,
+    "message": "...", "lat": 13.08, "lon": 80.27, "incident_id": "inc-1"}
+
+    Does NOT wake any orchestrator agent (tracker 3.3 design doc) — only
+    computes a trust/confidence score against AG-1's current severity.
+    """
+    incident_id = raw.get("incident_id", "default")  # matches main.py's /ingest fallback
+    state = blackboard.get(incident_id)
+    claimed_severity = float(raw.get("claimed_severity", 0.5))
+    confidence, flagged = citizen_verification.score_confidence(
+        incident_id, claimed_severity, state
+    )
+    return Event(
+        source_type="citizen",
+        source_id=str(raw.get("reporter_id", "unknown")),
+        geo=Geo(type="Point", coordinates=[raw["lon"], raw["lat"]]),
+        payload={
+            "message": raw.get("message", ""),
+            "claimed_severity": claimed_severity,
+            "flagged_for_review": flagged,
+        },
+        confidence=confidence,
+    )
+
+
 NORMALIZERS = {
     "iot": normalize_iot,
     "weather": normalize_weather,
     "satellite": normalize_satellite,
+    "citizen": normalize_citizen,
 }
 
 
