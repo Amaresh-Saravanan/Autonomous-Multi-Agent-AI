@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # backend/ on path
 
 from fastapi.testclient import TestClient
 from app.main import app
+from _auth_helpers import operator_headers
 
 client = TestClient(app)
 
@@ -19,7 +20,7 @@ def test_metrics_endpoint_reports_counts_latency_and_acceptance_rate():
         })
         assert r.status_code == 200
 
-    resp = client.get("/metrics")
+    resp = client.get("/metrics", headers=operator_headers())
     assert resp.status_code == 200
     body = resp.json()
 

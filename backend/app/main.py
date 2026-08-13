@@ -7,11 +7,12 @@ from __future__ import annotations
 
 import time
 
-from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import alerts
 from . import audit
+from . import auth
 from . import blackboard
 from . import metrics
 from . import orchestrator
@@ -47,8 +48,18 @@ def health():
     return {"status": "ok", "using_redis": blackboard.using_redis()}
 
 
+@app.post("/auth/login")
+def login(body: dict):
+    """Open endpoint — this IS the auth (tracker 3.4)."""
+    user = auth.authenticate(body.get("username", ""), body.get("password", ""))
+    if user is None:
+        raise HTTPException(status_code=401, detail="invalid credentials")
+    token = auth.issue_token(user["username"], user["role"], user["agency"])
+    return {"access_token": token, "token_type": "bearer"}
+
+
 @app.get("/metrics")
-def get_metrics():
+def get_metrics(user: dict = Depends(auth.require_role("operator"))):
     """Observability (tracker 3.8): request counts/latency per route plus
     recommendation acceptance rate = approved / (approved + rejected) among
     decided recs (pending recs excluded from the ratio's denominator)."""
@@ -62,7 +73,7 @@ def get_metrics():
 
 
 @app.get("/resources")
-def get_resources():
+def get_resources(user: dict = Depends(auth.require_role("viewer"))):
     return {
         "hospitals": HOSPITALS,
         "shelters": SHELTERS,
@@ -89,22 +100,22 @@ async def ingest(source_type: str, raw: dict):
 
 
 @app.get("/incidents/{incident_id}")
-def get_incident(incident_id: str):
+def get_incident(incident_id: str, user: dict = Depends(auth.require_role("viewer"))):
     return blackboard.get(incident_id)
 
 
 @app.get("/incidents/{incident_id}/severity")
-def get_severity_grid(incident_id: str):
+def get_severity_grid(incident_id: str, user: dict = Depends(auth.require_role("viewer"))):
     """DS-1 severity heat-map as GeoJSON (TDD 5)."""
     return severity_grid.as_geojson(incident_id)
 
 
 @app.get("/recommendations")
-def list_recommendations(status: str | None = None):
+def list_recommendations(status: str | None = None, user: dict = Depends(auth.require_role("viewer"))):
     return recommendations.list_recs(status)
 
 
-def _decide(rec_id: str, new_status: str) -> dict:
+def _decide(rec_id: str, new_status: str, actor: str) -> dict:
     """Human approve/reject (tracker 2.9, PRD AC-5) — audited (TDD 5)."""
     rec = recommendations.get(rec_id)
     if rec is None:
@@ -117,19 +128,18 @@ def _decide(rec_id: str, new_status: str) -> dict:
     current = blackboard.get(rec["incident_id"]).get(rec["agent_id"])
     if current and current.get("rec_id") == rec_id:
         blackboard.merge(rec["incident_id"], {rec["agent_id"]: rec})
-    # ponytail: no RBAC yet (tracker 3.4), so actor is a fixed placeholder.
-    audit.record("operator", new_status, rec_id, before, rec)
+    audit.record(actor, new_status, rec_id, before, rec)
     return rec
 
 
 @app.post("/recommendations/{rec_id}/approve")
-def approve_recommendation(rec_id: str):
-    return _decide(rec_id, "approved")
+def approve_recommendation(rec_id: str, user: dict = Depends(auth.require_role("operator"))):
+    return _decide(rec_id, "approved", user["username"])
 
 
 @app.post("/recommendations/{rec_id}/reject")
-def reject_recommendation(rec_id: str):
-    return _decide(rec_id, "rejected")
+def reject_recommendation(rec_id: str, user: dict = Depends(auth.require_role("operator"))):
+    return _decide(rec_id, "rejected", user["username"])
 
 
 @app.post("/citizen/chat")

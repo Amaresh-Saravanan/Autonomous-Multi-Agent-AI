@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # backend/ on path
 from fastapi.testclient import TestClient
 from app.main import app
 from app.orchestrator import _detect_conflicts
+from _auth_helpers import viewer_headers
 
 client = TestClient(app)
 
@@ -63,7 +64,7 @@ def test_real_ingest_surfaces_shelter_conflict_via_incident_endpoint():
     })
     assert r.status_code == 200
 
-    state = client.get("/incidents/conflict-scenario-1").json()
+    state = client.get("/incidents/conflict-scenario-1", headers=viewer_headers()).json()
     assert len(state["conflicts"]) == 1
     conflict = state["conflicts"][0]
     assert conflict["agents"] == ["AG-5", "AG-6"]

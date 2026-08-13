@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # backend/ on path
 
 from fastapi.testclient import TestClient
 from app.main import app
+from _auth_helpers import viewer_headers
 
 client = TestClient(app)
 
@@ -22,7 +23,7 @@ def test_health():
 
 
 def test_resources_endpoint_returns_all_categories():
-    r = client.get("/resources")
+    r = client.get("/resources", headers=viewer_headers())
     assert r.status_code == 200
     body = r.json()
     for key in ["hospitals", "shelters", "teams", "ambulances"]:
@@ -58,7 +59,7 @@ def test_critical_reading_raises_severity_with_evidence():
     assert "wl-042" in rec["rationale"]
 
     # blackboard persisted it
-    state = client.get("/incidents/flood-test-1").json()
+    state = client.get("/incidents/flood-test-1", headers=viewer_headers()).json()
     assert state["AG-1"]["severity"] == 1.0
 
     # Phase 2: full 7-agent chain ran and each carries evidence + rationale

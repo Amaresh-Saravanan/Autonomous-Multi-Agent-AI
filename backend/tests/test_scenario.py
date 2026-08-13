@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # backend/ on path
 
 from fastapi.testclient import TestClient
 from app.main import app
+from _auth_helpers import viewer_headers
 
 client = TestClient(app)
 
@@ -40,12 +41,12 @@ def test_escalating_flood_scenario_produces_rising_severity_trend():
     assert severities[-1] == 1.0
 
     # AG-8 rolling summary reflects the worst-known severity at the end.
-    state = client.get(f"/incidents/{INCIDENT_ID}").json()
+    state = client.get(f"/incidents/{INCIDENT_ID}", headers=viewer_headers()).json()
     assert state["AG-8"]["severity"] == severities[-1]
     assert state["AG-8"]["rationale"].strip()
 
     # DS-1 severity grid: same location -> one cell, holding the worst case.
-    grid = client.get(f"/incidents/{INCIDENT_ID}/severity").json()
+    grid = client.get(f"/incidents/{INCIDENT_ID}/severity", headers=viewer_headers()).json()
     assert len(grid["features"]) == 1
     assert grid["features"][0]["properties"]["severity"] == severities[-1]
 
