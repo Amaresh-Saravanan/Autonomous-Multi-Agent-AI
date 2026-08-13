@@ -63,7 +63,7 @@ Goal: the platform recommends *action*, not just awareness.
 
 | ID | Task | Priority | Status | Notes |
 |----|------|----------|--------|-------|
-| 2.1 | LangGraph orchestrator (trigger routing, agent scheduling) | P0 | ◐ | agent scheduling done via app/orchestrator.py (StateGraph, fixed order) — trigger routing (selective agent scheduling) still deferred |
+| 2.1 | LangGraph orchestrator (trigger routing, agent scheduling) | P0 | ☑ | agent scheduling via app/orchestrator.py (StateGraph, fixed order); trigger routing via agents/base.py `triggers` per agent — AG-1/AG-8 all types, AG-2 iot+satellite, AG-3/4/5/6 iot-only; tests/test_trigger_routing.py |
 | 2.2 | Conflict surfacing (two agents disagree → human) | P0 | ☑ | AC-4 — app/orchestrator.py `_detect_conflicts` (AG-5 vs AG-6 shelter mismatch), written to blackboard `conflicts[]`, pull-only via existing GET /incidents/{id}; tests/test_conflicts.py |
 | 2.3 | AG-3 Rescue Planning (priority + team assignment) | P0 | ☑ | agents/rescue.py |
 | 2.4 | OSRM/Valhalla self-hosted + blocked-road edge weighting | P0 | ☐ | AG-6 uses straight-line + radius check, not real OSRM |
@@ -129,3 +129,4 @@ passes load + security review.
 | 2026-07-28 | Severity grid uses lat/lon rounding (geohash-lite), not the h3-py library | avoids a new dependency for what a one-line quantization does; revisit only if variable-size cells are actually needed |
 | 2026-08-06 | Approve/reject audit actor is a fixed "operator" string, not a real identity | RBAC (tracker 3.4) isn't built yet; revisit once users/auth exist |
 | 2026-08-12 | Conflict detection (AC-4) scoped to one real pair — AG-5 vs AG-6 shelter mismatch — not a general cross-agent conflict framework | only pair that targets the same resource today; shelter s-1 seeded at full capacity so it's demoable, not just unit-testable; revisit if more agent pairs need it |
+| 2026-08-13 | Phase 2 closed out via 2.1 (trigger routing) rather than 2.4 (real OSRM); 2.4 accepted as documented debt | 2.4 is a bigger infra lift (self-hosted routing service) than the MVP needs now; 2.1 was the cheaper, higher-value P0 gap and unblocks starting Phase 3 per the tracker's own phase-gating rule |

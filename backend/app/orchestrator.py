@@ -6,10 +6,10 @@ same side effects the old main.py loop did: refresh blackboard state, run
 the agent, merge its output back into the blackboard, record the
 recommendation, and (for AG-1) update the severity grid.
 
-ponytail: trigger-based selective scheduling (only running agents relevant
-to an event type) is NOT implemented here — every agent still runs on every
-event, same as before this module existed. Add that when tracker 2.1's
-"trigger routing" half is picked up.
+Trigger routing (tracker 2.1, PRD AC-2): each Agent declares `triggers`
+(agents/base.py) — the event source_types that wake it. AG-1/AG-8 react to
+everything; AG-2 to iot+satellite; AG-3/4/5/6 (dispatch) to iot only, since
+a weather forecast alone shouldn't scramble rescue teams.
 """
 from __future__ import annotations
 from typing import TypedDict
@@ -47,6 +47,9 @@ class OrchestratorState(TypedDict):
 
 def _make_node(agent):
     def node(state: OrchestratorState) -> OrchestratorState:
+        # PRD AC-2 trigger routing: skip agents this event batch doesn't wake.
+        if not any(e.source_type in agent.triggers for e in state["events"]):
+            return state
         current = blackboard.get(state["incident_id"])  # refresh after prior agents
         rec = agent.run(state["incident_id"], state["events"], current)
         rec_dict = rec.model_dump()

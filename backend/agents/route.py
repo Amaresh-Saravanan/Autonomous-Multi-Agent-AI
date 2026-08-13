@@ -13,6 +13,8 @@ BLOCKED_SEGMENTS = [{"lat": 13.06, "lon": 80.265, "radius_km": 0.5, "reason": "b
 
 class RouteOptimizationAgent(Agent):
     id = "AG-6"
+    # dispatch decisions need confirmed ground-truth signal, not a forecast/imagery alone.
+    triggers = frozenset({"iot"})
 
     def run(self, incident_id: str, events: list[Event], state: dict) -> Recommendation:
         ag1 = state.get("AG-1", {})

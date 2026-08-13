@@ -13,6 +13,8 @@ SUPPLIES_PER_PERSON = {"food_units": 3, "water_liters": 10, "blankets": 1}
 
 class ResourceAllocationAgent(Agent):
     id = "AG-5"
+    # dispatch decisions need confirmed ground-truth signal, not a forecast/imagery alone.
+    triggers = frozenset({"iot"})
 
     def run(self, incident_id: str, events: list[Event], state: dict) -> Recommendation:
         ag1 = state.get("AG-1", {})

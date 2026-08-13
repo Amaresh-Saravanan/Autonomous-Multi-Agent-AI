@@ -8,6 +8,10 @@ from app.models import Event, Recommendation
 
 class Agent(ABC):
     id: str
+    # PRD AC-2 / TDD 4.1 triggers(): which event source_types wake this agent.
+    # Default = everything, for agents that must react to any signal (AG-1
+    # assesses, AG-8 summarizes). Response/dispatch agents narrow this.
+    triggers: frozenset[str] = frozenset({"iot", "weather", "satellite"})
 
     @abstractmethod
     def run(self, incident_id: str, events: list[Event], state: dict) -> Recommendation:

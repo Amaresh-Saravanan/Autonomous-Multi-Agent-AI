@@ -13,6 +13,8 @@ AFFECTED_RADIUS_KM = 2.0
 
 class DamageAssessmentAgent(Agent):
     id = "AG-2"
+    # ground sensor + imagery evidence of damage; a forecast alone isn't damage evidence.
+    triggers = frozenset({"iot", "satellite"})
 
     def run(self, incident_id: str, events: list[Event], state: dict) -> Recommendation:
         ag1 = state.get("AG-1", {})
