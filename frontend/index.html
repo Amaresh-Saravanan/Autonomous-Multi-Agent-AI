@@ -21,28 +21,66 @@
   body { margin: 0; background: var(--bg-base); color: var(--text-primary);
          font-family: system-ui, -apple-system, sans-serif; }
   #map { position: absolute; inset: 0; }
+  /* Subtle top vignette so panels/brand bar sit on a bit of depth instead of
+     bare map — cheap, no extra layer or asset. */
+  #map::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(11,14,20,.55) 0%, rgba(11,14,20,0) 12%);
+  }
+  #brand {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+    background: var(--bg-surface); backdrop-filter: blur(6px);
+    border: 1px solid var(--border); border-radius: 999px; font-size: 12px;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted);
+    box-shadow: 0 8px 24px rgba(0,0,0,.45); z-index: 4;
+  }
+  #brand strong { color: var(--text-primary); font-weight: 700; }
+  #brand .pulse-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--sev-low);
+    box-shadow: 0 0 0 rgba(34,197,94,.6); animation: livePulse 2.4s ease-out infinite;
+  }
+  @keyframes livePulse {
+    0% { box-shadow: 0 0 0 0 rgba(34,197,94,.55); }
+    70% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+  }
   #panel {
     position: absolute; top: 16px; right: 16px; width: 340px; max-height: 80vh;
     overflow-y: auto; background: var(--bg-surface); backdrop-filter: blur(6px);
     border: 1px solid var(--border); border-radius: 12px; padding: 16px;
     box-shadow: 0 8px 24px rgba(0,0,0,.45);
   }
-  #panel h2 { margin: 0 0 8px; font-size: 16px; }
+  #panel h2 {
+    margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
   #status { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
   .card {
     border-left: 4px solid var(--sev-low); background: rgba(28,34,48,0.6);
     border-radius: 8px; padding: 10px 12px; margin-bottom: 10px;
     animation: slideIn 200ms ease-out;
+    transition: transform 150ms ease, box-shadow 150ms ease;
   }
+  .card:hover { transform: translateX(-2px); }
   .card.sev-high { border-left-color: var(--sev-high); }
-  .card.sev-critical { border-left-color: var(--sev-critical); box-shadow: 0 0 12px rgba(239,68,68,.35); }
+  .card.sev-critical {
+    border-left-color: var(--sev-critical); box-shadow: 0 0 12px rgba(239,68,68,.35);
+    animation: slideIn 200ms ease-out, criticalBreathe 2.6s ease-in-out infinite;
+  }
+  @keyframes criticalBreathe {
+    0%, 100% { box-shadow: 0 0 12px rgba(239,68,68,.35); }
+    50% { box-shadow: 0 0 20px rgba(239,68,68,.6); }
+  }
   .card .action { font-weight: 600; font-size: 14px; }
   .card .why { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
   .card .actions { margin-top: 8px; display: flex; gap: 8px; }
   .card .actions button {
     cursor: pointer; font-size: 11px; padding: 4px 10px; border-radius: 6px;
     border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text-primary);
+    transition: background 120ms ease, border-color 120ms ease;
   }
+  .card .actions button:hover { background: rgba(255,255,255,0.12); border-color: var(--text-muted); }
   @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
   #send-form { position: absolute; bottom: 16px; left: 16px; background: var(--bg-surface);
     backdrop-filter: blur(6px); border: 1px solid var(--border); border-radius: 12px;
@@ -88,6 +126,8 @@
     <span id="whoami-label"></span>
     <button id="logout-btn">Log out</button>
   </div>
+
+  <div id="brand"><span class="pulse-dot"></span><strong>EOC</strong> Command Dashboard</div>
 
   <div id="map"></div>
 
@@ -183,11 +223,16 @@
       connectWS();
     }
 
+    // Dark command-center basemap (CARTO Dark Matter — free vector style, no
+    // API key/billing needed, unlike Google Maps). Tuned further on "load"
+    // below so it reads as part of this dashboard's own visual language
+    // (severity color ramp, glass panels) rather than a bolted-on widget.
     const map = new maplibregl.Map({
       container: "map",
-      style: "https://demotiles.maplibre.org/style.json",
+      style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
       center: [80.2707, 13.0827],
       zoom: 10,
+      pitch: 0,
     });
 
     const statusEl = document.getElementById("status");
@@ -200,7 +245,34 @@
 
     // DS-1 severity heat layer (tracker 1.10): color ramp matches the .card
     // severity classes above — one severity language across map + feed.
+    // Deepen CARTO Dark Matter's default blacks/grays to match this
+    // dashboard's own token palette (--bg-base #0B0E14) instead of leaving
+    // the stock basemap colors — the small touch that makes the map read as
+    // purpose-built rather than a generic tile swap.
+    function tuneBasemapPalette() {
+      const style = map.getStyle();
+      style.layers.forEach((layer) => {
+        // Guard every recolor by the layer's actual paint-property type first —
+        // e.g. "waterway" is a line layer, not a fill, so setting fill-color on
+        // it throws and (since forEach doesn't catch per-iteration) silently
+        // aborts every layer after it in style order.
+        try {
+          if (layer.type === "background") {
+            map.setPaintProperty(layer.id, "background-color", "#0B0E14");
+          } else if (layer.type === "fill" && layer.id === "water") {
+            map.setPaintProperty(layer.id, "fill-color", "#0F1626");
+          } else if (layer.type === "fill" && (layer.id.includes("landuse") || layer.id.includes("landcover") || layer.id.includes("park"))) {
+            map.setPaintProperty(layer.id, "fill-color", "#101521");
+          } else if (layer.type === "line" && layer.id.includes("road")) {
+            map.setPaintProperty(layer.id, "line-color", "#232A3D");
+          }
+        } catch (e) { /* not every layer accepts the paint prop we tried */ }
+      });
+    }
+
     map.on("load", () => {
+      tuneBasemapPalette();
+
       map.addSource("severity", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       map.addLayer({
         id: "severity-fill", type: "fill", source: "severity",
