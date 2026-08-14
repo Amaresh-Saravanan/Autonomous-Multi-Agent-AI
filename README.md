@@ -54,4 +54,4 @@ python -m pytest tests/test_slice.py -v
 - Incident clustering
 - Postgres/PostGIS + Redis streaming
 - Full Next.js + Tailwind dashboard with drag-drop, animations from `docs/UX_DESIGN.md`
-- RBAC, audit log, alerts engine
+- RBAC, audit log, alerts engine...
