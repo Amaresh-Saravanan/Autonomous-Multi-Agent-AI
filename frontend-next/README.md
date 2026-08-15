@@ -16,6 +16,19 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## MapLibre worker files (`public/maplibre-gl-*.mjs`)
+
+`maplibre-gl` v6 builds its tile-processing Worker URL from a
+dynamically-constructed `new URL(..., import.meta.url)` path, which no
+bundler (confirmed: both webpack and Turbopack) can statically resolve to
+copy into the build — the worker silently 404s and the map never renders,
+with no error surfaced anywhere. `public/maplibre-gl-worker.mjs` and
+`public/maplibre-gl-shared.mjs` are **manual copies** of
+`node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs` and
+`maplibre-gl-shared.mjs`, wired up via `setWorkerUrl()` in
+`components/MapView.tsx`. **Re-copy both files after every `maplibre-gl`
+version bump** — nothing keeps them in sync automatically.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
