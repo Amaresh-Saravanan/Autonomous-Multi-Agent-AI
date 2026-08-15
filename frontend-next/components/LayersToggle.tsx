@@ -17,7 +17,7 @@ export default function LayersToggle({
     onChange({ ...value, [key]: e.target.checked });
 
   return (
-    <div className="glass-panel absolute top-4 left-4 z-30 flex flex-col gap-1.5 rounded-xl px-3 py-2.5 text-xs">
+    <div className="flex flex-col gap-1.5 pt-1 text-xs">
       <label className="flex cursor-pointer items-center gap-1.5">
         <input type="checkbox" checked={value.severity} onChange={toggle("severity")} />
         Severity heat layer

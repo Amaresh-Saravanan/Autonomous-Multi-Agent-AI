@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence } from "framer-motion";
 import RecCard from "./RecCard";
 import type { Recommendation } from "@/lib/types";
 
@@ -16,12 +17,11 @@ export default function AlertsPanel({
 
   return (
     <div>
-      <h2 className="mb-2.5 text-xs font-bold tracking-wider text-[var(--text-muted)] uppercase">
-        Alerts
-      </h2>
-      {alerts.map((rec) => (
-        <RecCard key={rec.rec_id} rec={rec} onDecided={onDecided} />
-      ))}
+      <AnimatePresence initial={false}>
+        {alerts.map((rec, i) => (
+          <RecCard key={rec.rec_id} rec={rec} index={i} onDecided={onDecided} />
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

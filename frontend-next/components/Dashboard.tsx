@@ -9,7 +9,7 @@ import BrandBar from "./BrandBar";
 import WhoAmI from "./WhoAmI";
 import MapView from "./MapView";
 import LayersToggle, { type LayersVisible } from "./LayersToggle";
-import SidePanel from "./SidePanel";
+import DashboardGrid, { type TileDef } from "./DashboardGrid";
 import AlertsPanel from "./AlertsPanel";
 import RecommendationsPanel from "./RecommendationsPanel";
 import IngestForm from "./IngestForm";
@@ -25,6 +25,7 @@ export default function Dashboard() {
     routes: true,
     resources: true,
   });
+  const [editMode, setEditMode] = useState(false);
   const currentIncidentRef = useRef<string | null>(null);
 
   const ingestRecommendations = useCallback((recs: Recommendation[]) => {
@@ -76,26 +77,46 @@ export default function Dashboard() {
 
   const recommendations = [...recsById.values()];
 
+  const tiles: TileDef[] = [
+    {
+      key: "layers",
+      title: "Layers",
+      content: <LayersToggle value={layersVisible} onChange={setLayersVisible} />,
+    },
+    {
+      key: "alerts",
+      title: "Alerts",
+      content: (
+        <AlertsPanel
+          recommendations={recommendations}
+          onDecided={(r) => ingestRecommendations([r])}
+        />
+      ),
+    },
+    {
+      key: "recs",
+      title: "Recommendations",
+      content: (
+        <RecommendationsPanel
+          recommendations={recommendations}
+          wsStatus={wsStatus}
+          onDecided={(r) => ingestRecommendations([r])}
+        />
+      ),
+    },
+  ];
+
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       <BrandBar />
-      <WhoAmI />
+      <WhoAmI editMode={editMode} onToggleEdit={() => setEditMode((v) => !v)} />
       <MapView
         resources={resources}
         recommendations={recommendations}
         severityGeojson={severityGeojson}
         layersVisible={layersVisible}
       />
-      <LayersToggle value={layersVisible} onChange={setLayersVisible} />
-      <SidePanel>
-        <AlertsPanel recommendations={recommendations} onDecided={(r) => ingestRecommendations([r])} />
-        <hr className="my-3 border-[var(--border)]" />
-        <RecommendationsPanel
-          recommendations={recommendations}
-          wsStatus={wsStatus}
-          onDecided={(r) => ingestRecommendations([r])}
-        />
-      </SidePanel>
+      <DashboardGrid tiles={tiles} editMode={editMode} />
       <IngestForm
         onIngested={(incidentId, recs) => {
           ingestRecommendations(recs);

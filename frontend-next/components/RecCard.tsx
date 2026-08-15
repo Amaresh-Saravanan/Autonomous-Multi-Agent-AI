@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 import { decideRecommendation } from "@/lib/api";
 import type { Recommendation } from "@/lib/types";
@@ -18,12 +19,15 @@ const BORDER_COLOR: Record<string, string> = {
 
 export default function RecCard({
   rec,
+  index = 0,
   onDecided,
 }: {
   rec: Recommendation;
+  index?: number;
   onDecided: (updated: Recommendation) => void;
 }) {
   const { token } = useAuth();
+  const reduce = useReducedMotion();
   const cls = sevClass(rec.severity);
 
   async function decide(action: "approve" | "reject") {
@@ -36,15 +40,19 @@ export default function RecCard({
   }
 
   return (
-    <div
-      className="mb-2.5 rounded-lg px-3 py-2.5 transition-transform hover:-translate-x-0.5"
+    <motion.div
+      layout
+      // Enter: slide-up 12px + fade, staggered ~40ms per item so a burst of
+      // alerts reads as a sequence (UX_DESIGN §4.1/§4.2). Exit: slide right out
+      // (a decided card leaving the pending feed). Reduced-motion → instant.
+      initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reduce ? { opacity: 0 } : { opacity: 0, x: 40 }}
+      transition={{ duration: 0.2, ease: "easeOut", delay: reduce ? 0 : index * 0.04 }}
+      className={`mb-2.5 rounded-lg px-3 py-2.5 ${cls === "critical" ? "critical-glow" : ""}`}
       style={{
         borderLeft: `4px solid ${BORDER_COLOR[cls]}`,
         background: "rgba(28,34,48,0.6)",
-        animation:
-          cls === "critical"
-            ? "slideIn 200ms ease-out, criticalBreathe 2.6s ease-in-out infinite"
-            : "slideIn 200ms ease-out",
       }}
     >
       <div className="text-sm font-semibold">
@@ -70,6 +78,6 @@ export default function RecCard({
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

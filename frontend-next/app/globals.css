@@ -83,6 +83,28 @@ body {
   }
 }
 
+/* Critical severity: the one allowed looping animation — a slow breathing
+   glow as a liveness signal that the incident is still active (UX_DESIGN
+   §4.2). Only box-shadow animates, so it composes with framer-motion's
+   transform/opacity on the same element. */
+.critical-glow {
+  animation: criticalBreathe 2.6s ease-in-out infinite;
+}
+
+/* react-grid-layout tiles float over the pinned map: the grid container is
+   click-through (pointer-events:none) and only the tiles re-enable events. */
+.react-grid-item {
+  pointer-events: auto;
+}
+.react-grid-item.react-grid-placeholder {
+  background: var(--accent);
+  opacity: 0.15;
+  border-radius: 12px;
+}
+.react-resizable-handle {
+  opacity: 0.5;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
