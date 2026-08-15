@@ -24,16 +24,15 @@ from .normalizers import normalize
 from .resources import HOSPITALS, SHELTERS, TEAMS, AMBULANCES
 from agents import citizen as citizen_agent
 
-# frontend/index.html (legacy Phase 0 shell) has no dev server -- it's opened
-# directly as a file:// URL, which browsers send as the literal Origin "null".
-# frontend-next/ (the Next.js port) runs its own dev server on :3000. Access
-# control here is a Bearer token (app/auth.py), not a cookie, so CORS isn't
-# the security boundary anyway -- default stays permissive-but-not-wildcard so
-# a stray webpage can't ride a logged-in user's cookies (defense in depth),
-# and is still overridable via env for a real deployment with a hosted
-# frontend.
+# frontend-next/ (Next.js + Tailwind) runs its own dev server on :3000 and is
+# the only frontend. Access control here is a Bearer token (app/auth.py), not
+# a cookie, so CORS isn't the security boundary anyway -- default stays
+# permissive-but-not-wildcard so a stray webpage can't ride a logged-in user's
+# cookies (defense in depth), and is still overridable via env for a real
+# deployment with a hosted frontend. (The retired Phase 0 frontend/index.html
+# shell was a file:// page sending Origin "null"; that's no longer allowed.)
 CORS_ORIGINS = os.getenv(
-    "CORS_ORIGINS", "null,http://localhost:8000,http://localhost:3000"
+    "CORS_ORIGINS", "http://localhost:8000,http://localhost:3000"
 ).split(",")
 
 app = FastAPI(title="Disaster Response Platform - Phase 2 slice")

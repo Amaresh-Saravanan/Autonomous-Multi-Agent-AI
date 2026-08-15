@@ -13,7 +13,15 @@ python -m uvicorn app.main:app --reload   # serves on :8000
 
 Nothing above is required to run — `GROQ_API_KEY` unset falls back to rule-based agent reasoning, `REDIS_URL` unset falls back to an in-memory blackboard, `JWT_SECRET` unset falls back to a dev-only default (logs a warning, never use outside local dev).
 
-Frontend: open `frontend/index.html` directly in a browser (no build step, no dev server — it's a `file://` page that fetches `http://localhost:8000`).
+Frontend (`frontend-next/`, Next.js + TypeScript + Tailwind):
+
+```bash
+cd frontend-next
+npm install
+npm run dev      # serves on http://localhost:3000
+```
+
+Open http://localhost:3000 and log in with a seed user (below); it fetches `http://localhost:8000`. (The original Phase 0 `frontend/index.html` shell has been retired.)
 
 ## Running tests
 

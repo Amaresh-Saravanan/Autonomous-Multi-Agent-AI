@@ -45,7 +45,7 @@ export default function Dashboard() {
   );
 
   // Load resources + open the WS feed once authenticated (mirrors the
-  // legacy onAuthenticated() flow from frontend/index.html).
+  // onAuthenticated() flow from the original Phase 0 shell, since retired).
   useEffect(() => {
     if (!user) return;
     fetchResources(token).then(setResources).catch(console.error);

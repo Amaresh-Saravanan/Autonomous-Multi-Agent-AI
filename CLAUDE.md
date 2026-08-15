@@ -20,7 +20,7 @@ python -m pytest tests/test_slice.py -v       # single test file
 python -m pytest tests/test_slice.py::test_name -v   # single test
 ```
 
-Frontend has no build step: open `frontend/index.html` directly in a browser (it connects to `localhost:8000`).
+Frontend is a Next.js + TypeScript + Tailwind app in `frontend-next/` (`npm install && npm run dev`, serves on `localhost:3000`, connects to `localhost:8000`). The original Phase 0 `frontend/index.html` shell has been retired.
 
 LLM reasoning is optional — set `GROQ_API_KEY` before starting uvicorn to enable it; everything falls back to rule-based logic without it (see `app/llm.py`).
 
