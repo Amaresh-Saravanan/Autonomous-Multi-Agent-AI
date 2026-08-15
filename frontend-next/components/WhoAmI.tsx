@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
+import ThemeToggle from "./ThemeToggle";
 
 export default function WhoAmI({
   editMode,
@@ -14,6 +15,7 @@ export default function WhoAmI({
 
   return (
     <div className="glass-panel absolute top-4 right-4 z-40 flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-[var(--text-muted)]">
+      <ThemeToggle />
       <button
         onClick={onToggleEdit}
         aria-pressed={editMode}

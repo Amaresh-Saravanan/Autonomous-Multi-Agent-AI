@@ -2,7 +2,7 @@
 
 /* Design tokens — docs/UX_DESIGN.md §2.1. Dark is the default per the spec
    ("command centers run 24/7 in low light"); light is opt-in via
-   [data-theme="light"] (theme toggle wiring lands in a later phase). */
+   [data-theme="light"] (ThemeToggle wires it up). */
 :root,
 :root[data-theme="dark"] {
   --bg-base: #0b0e14;
@@ -25,6 +25,27 @@
   --glass-border: 1px solid rgba(42, 49, 66, 0.6);
 }
 
+:root[data-theme="light"] {
+  --bg-base: #f5f7fa;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #eef1f6;
+  --border: #d6dce6;
+  --text-primary: #1a2130;
+  --text-muted: #5a6478;
+  --accent: #2563eb;
+
+  --sev-low: #16a34a;
+  --sev-moderate: #ca8a04;
+  --sev-high: #ea580c;
+  --sev-critical: #dc2626;
+  --sev-critical-glow: 0 0 10px rgba(220, 38, 38, 0.45);
+
+  --shadow-panel: 0 6px 18px rgba(20, 33, 48, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-blur: 6px;
+  --glass-border: 1px solid rgba(214, 220, 230, 0.8);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -40,6 +61,29 @@ body {
   color: var(--text-primary);
   font-family: Inter, system-ui, -apple-system, sans-serif;
   font-variant-numeric: tabular-nums;
+  /* Theme toggle cross-fades surfaces rather than hard-flipping (UX_DESIGN
+     §4.5). Zeroed under prefers-reduced-motion by the media query below. */
+  transition: background 200ms ease, color 200ms ease;
+}
+
+/* Visible keyboard focus everywhere — accessibility non-negotiable
+   (UX_DESIGN §6). */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Screen-reader-only live region text (announces new critical alerts). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .glass-panel {

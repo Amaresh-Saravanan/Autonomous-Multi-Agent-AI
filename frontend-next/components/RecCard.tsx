@@ -17,6 +17,14 @@ const BORDER_COLOR: Record<string, string> = {
   critical: "var(--sev-critical)",
 };
 
+// Severity is never encoded by color alone (accessibility, life-critical
+// context — UX_DESIGN §6): each level carries an icon + a text label too.
+const SEV_LABEL: Record<string, string> = {
+  low: "◆ LOW",
+  high: "▲ HIGH",
+  critical: "⚠ CRITICAL",
+};
+
 export default function RecCard({
   rec,
   index = 0,
@@ -55,8 +63,16 @@ export default function RecCard({
         background: "rgba(28,34,48,0.6)",
       }}
     >
-      <div className="text-sm font-semibold">
-        {rec.agent_id} · {rec.action}
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm font-semibold">
+          {rec.agent_id} · {rec.action}
+        </div>
+        <span
+          className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide"
+          style={{ color: BORDER_COLOR[cls], border: `1px solid ${BORDER_COLOR[cls]}` }}
+        >
+          {SEV_LABEL[cls]}
+        </span>
       </div>
       <div className="mt-1 text-xs text-[var(--text-muted)]">{rec.rationale}</div>
       <div className="mt-1 text-xs text-[var(--text-muted)]">

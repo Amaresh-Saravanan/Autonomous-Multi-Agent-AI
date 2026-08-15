@@ -12,21 +12,45 @@ import "react-grid-layout/css/styles.css";
 
 const STORAGE_KEY = "dashboardLayout.v1";
 
-const DEFAULT_LAYOUT: Layout = [
-  { i: "layers", x: 0, y: 0, w: 2, h: 2 },
-  { i: "alerts", x: 9, y: 0, w: 3, h: 5 },
-  { i: "recs", x: 9, y: 5, w: 3, h: 5 },
-];
+// Per-role default layouts (PRD UI-5 / UX_DESIGN §3.1). Scoped to the three
+// roles the RBAC actually has (admin/operator/viewer) rather than the
+// finer-grained personas the UX doc sketches, since the backend has no such
+// roles. operator = dispatch-focused (tall Alerts on top); viewer = monitor
+// (tall Recommendations); admin = balanced.
+// ponytail: one shared localStorage key across roles on a browser, so the
+// last saved layout wins regardless of who's logged in — fine until there's
+// real per-user server storage (deferred with the DB).
+const ROLE_LAYOUTS: Record<string, Layout> = {
+  admin: [
+    { i: "layers", x: 0, y: 0, w: 2, h: 2 },
+    { i: "alerts", x: 9, y: 0, w: 3, h: 5 },
+    { i: "recs", x: 9, y: 5, w: 3, h: 5 },
+  ],
+  operator: [
+    { i: "layers", x: 0, y: 0, w: 2, h: 2 },
+    { i: "alerts", x: 9, y: 0, w: 3, h: 7 },
+    { i: "recs", x: 9, y: 7, w: 3, h: 4 },
+  ],
+  viewer: [
+    { i: "layers", x: 0, y: 0, w: 2, h: 2 },
+    { i: "alerts", x: 9, y: 0, w: 3, h: 4 },
+    { i: "recs", x: 9, y: 4, w: 3, h: 7 },
+  ],
+};
 
-function loadLayout(): Layout {
-  if (typeof window === "undefined") return DEFAULT_LAYOUT;
+function defaultForRole(role: string): Layout {
+  return ROLE_LAYOUTS[role] ?? ROLE_LAYOUTS.admin;
+}
+
+function loadLayout(role: string): Layout {
+  if (typeof window === "undefined") return defaultForRole(role);
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch {
-    /* fall through to default */
+    /* fall through to the role default */
   }
-  return DEFAULT_LAYOUT;
+  return defaultForRole(role);
 }
 
 export interface TileDef {
@@ -38,16 +62,18 @@ export interface TileDef {
 export default function DashboardGrid({
   tiles,
   editMode,
+  role,
 }: {
   tiles: TileDef[];
   editMode: boolean;
+  role: string;
 }) {
   const { width, containerRef, mounted } = useContainerWidth();
-  const [layout, setLayout] = useState<Layout>(DEFAULT_LAYOUT);
+  const [layout, setLayout] = useState<Layout>(() => defaultForRole(role));
 
   useEffect(() => {
-    setLayout(loadLayout());
-  }, []);
+    setLayout(loadLayout(role));
+  }, [role]);
 
   function persist(next: Layout) {
     setLayout(next);

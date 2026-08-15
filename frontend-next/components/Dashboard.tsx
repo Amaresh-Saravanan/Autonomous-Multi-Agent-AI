@@ -76,6 +76,9 @@ export default function Dashboard() {
   if (!user) return <LoginOverlay />;
 
   const recommendations = [...recsById.values()];
+  const criticalPending = recommendations.filter(
+    (r) => r.severity >= 0.85 && r.status === "pending"
+  ).length;
 
   const tiles: TileDef[] = [
     {
@@ -116,7 +119,14 @@ export default function Dashboard() {
         severityGeojson={severityGeojson}
         layersVisible={layersVisible}
       />
-      <DashboardGrid tiles={tiles} editMode={editMode} />
+      <DashboardGrid tiles={tiles} editMode={editMode} role={user.role} />
+      {/* Screen readers announce new critical alerts even when the operator
+          isn't looking at the panel (UX_DESIGN §6). */}
+      <div className="sr-only" role="status" aria-live="assertive">
+        {criticalPending > 0
+          ? `${criticalPending} critical alert${criticalPending > 1 ? "s" : ""} pending`
+          : ""}
+      </div>
       <IngestForm
         onIngested={(incidentId, recs) => {
           ingestRecommendations(recs);
