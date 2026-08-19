@@ -1,4 +1,4 @@
-import type { CurrentUser, Recommendation, ResourcesResponse } from "./types";
+import type { CurrentUser, IncidentState, Recommendation, ResourcesResponse } from "./types";
 
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
@@ -40,6 +40,15 @@ export async function fetchResources(
 ): Promise<ResourcesResponse> {
   const res = await authFetch(`${API_BASE}/resources`, token);
   if (!res.ok) throw new Error(`resources fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchIncidentState(
+  token: string | null,
+  incidentId: string
+): Promise<IncidentState> {
+  const res = await authFetch(`${API_BASE}/incidents/${incidentId}`, token);
+  if (!res.ok) throw new Error(`incident state fetch failed: ${res.status}`);
   return res.json();
 }
 

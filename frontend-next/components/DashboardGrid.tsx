@@ -23,16 +23,22 @@ const STORAGE_KEY = "dashboardLayout.v1";
 const ROLE_LAYOUTS: Record<string, Layout> = {
   admin: [
     { i: "layers", x: 0, y: 0, w: 2, h: 2 },
+    { i: "situation", x: 0, y: 2, w: 3, h: 3 },
+    { i: "resources", x: 0, y: 5, w: 3, h: 5 },
     { i: "alerts", x: 9, y: 0, w: 3, h: 5 },
     { i: "recs", x: 9, y: 5, w: 3, h: 5 },
   ],
   operator: [
     { i: "layers", x: 0, y: 0, w: 2, h: 2 },
+    { i: "situation", x: 0, y: 2, w: 3, h: 3 },
+    { i: "resources", x: 0, y: 5, w: 3, h: 5 },
     { i: "alerts", x: 9, y: 0, w: 3, h: 7 },
     { i: "recs", x: 9, y: 7, w: 3, h: 4 },
   ],
   viewer: [
     { i: "layers", x: 0, y: 0, w: 2, h: 2 },
+    { i: "situation", x: 0, y: 2, w: 3, h: 3 },
+    { i: "resources", x: 0, y: 5, w: 3, h: 5 },
     { i: "alerts", x: 9, y: 0, w: 3, h: 4 },
     { i: "recs", x: 9, y: 4, w: 3, h: 7 },
   ],

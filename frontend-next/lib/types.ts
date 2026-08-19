@@ -40,3 +40,18 @@ export interface ResourceItem {
 export type ResourceCategory = "hospitals" | "shelters" | "teams" | "ambulances";
 
 export type ResourcesResponse = Record<ResourceCategory, ResourceItem[]>;
+
+export interface Conflict {
+  agents: string[];
+  target: string;
+  values: Record<string, string>;
+  recs: string[];
+  rationale: string;
+}
+
+// GET /incidents/{id} returns the raw blackboard: one Recommendation per
+// agent id that has reported, plus a "conflicts" array (AC-4).
+export interface IncidentState {
+  conflicts?: Conflict[];
+  [agentId: string]: Recommendation | Conflict[] | undefined;
+}
