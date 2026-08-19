@@ -125,6 +125,9 @@ export default function Dashboard() {
   const criticalPending = recommendations.filter(
     (r) => r.severity >= 0.85 && r.status === "pending"
   ).length;
+  const highPending = recommendations.filter(
+    (r) => r.severity >= 0.5 && r.severity < 0.85 && r.status === "pending"
+  ).length;
 
   const tiles: TileDef[] = [
     {
@@ -172,7 +175,7 @@ export default function Dashboard() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
-      <BrandBar />
+      <BrandBar criticalCount={criticalPending} highCount={highPending} />
       <WhoAmI editMode={editMode} onToggleEdit={() => setEditMode((v) => !v)} />
       <MapView
         resources={resources}
