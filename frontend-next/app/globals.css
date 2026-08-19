@@ -1,5 +1,176 @@
 @import "tailwindcss";
 
+@theme inline {
+  --font-display: var(--font-oswald);
+  --color-background: var(--landing-background);
+  --color-foreground: var(--landing-foreground);
+  --color-primary: var(--landing-foreground);
+  --color-primary-foreground: var(--landing-background);
+  --color-muted-foreground: var(--landing-muted-foreground);
+}
+
+.landing-page {
+  --landing-background: oklch(0.985 0.002 90);
+  --landing-foreground: oklch(0.12 0.01 60);
+  --landing-muted-foreground: oklch(0.45 0.02 60);
+  background: var(--landing-background);
+  color: var(--landing-foreground);
+  font-family: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
+}
+
+.landing-page .font-mono {
+  font-family: var(--font-jetbrains), "JetBrains Mono", monospace;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.marquee-reverse {
+  animation: marquee-reverse 25s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.animate-char-in {
+  animation: char-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+  filter: blur(40px);
+  transform: translateY(100%);
+}
+
+@keyframes char-in {
+  0% { opacity: 0; filter: blur(40px); transform: translateY(100%); }
+  100% { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
+.noise-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+}
+
+/* Kinetic Command design tokens for the authenticated console shell —
+   stitch_eoc_command_console/kinetic_command/DESIGN.md. Colors/fonts/text
+   sizes are prefixed "console-" so they can't collide with the landing
+   page's own @theme tokens above (both define e.g. "primary"/"background").
+   Spacing keys are unprefixed: a generic 4px-grid numeric scale, not a
+   branded token, safe to extend globally. Radius intentionally NOT
+   overridden here — Tailwind's stock rounded-xl (12px) and rounded-md (6px)
+   already match DESIGN.md's stated panel/input radii exactly, and match
+   what the actual Stitch HTML mockups use (rounded-xl on every glass panel). */
+@theme {
+  --color-console-surface: #10131a;
+  --color-console-surface-dim: #10131a;
+  --color-console-surface-bright: #363941;
+  --color-console-surface-container-lowest: #0b0e15;
+  --color-console-surface-container-low: #191b23;
+  --color-console-surface-container: #1d2027;
+  --color-console-surface-container-high: #272a31;
+  --color-console-surface-container-highest: #32353c;
+  --color-console-on-surface: #e1e2ec;
+  --color-console-on-surface-variant: #c2c6d6;
+  --color-console-outline: #8c909f;
+  --color-console-outline-variant: #424754;
+  --color-console-primary: #adc6ff;
+  --color-console-on-primary: #002e6a;
+  --color-console-primary-container: #4d8eff;
+  --color-console-on-primary-container: #00285d;
+  --color-console-secondary: #c2c6d3;
+  --color-console-on-secondary: #2c313a;
+  --color-console-secondary-container: #474b56;
+  --color-console-tertiary: #ffb786;
+  --color-console-on-tertiary: #502400;
+  --color-console-tertiary-container: #df7412;
+  --color-console-error: #ffb4ab;
+  --color-console-on-error: #690005;
+  --color-console-error-container: #93000a;
+  --color-console-on-error-container: #ffdad6;
+  --color-console-background: #10131a;
+  --color-console-on-background: #e1e2ec;
+
+  /* Geist for UI chrome (already loaded as --font-geist-sans, layout.tsx);
+     JetBrains Mono for all data/numbers/timestamps (already loaded as
+     --font-jetbrains for the landing page's .font-mono — reused, not
+     re-fetched). */
+  --font-console-display-header: var(--font-geist-sans), sans-serif;
+  --font-console-body-compact: var(--font-geist-sans), sans-serif;
+  --font-console-body-sm: var(--font-geist-sans), sans-serif;
+  --font-console-label-caps: var(--font-geist-sans), sans-serif;
+  --font-console-data-tabular: var(--font-jetbrains), monospace;
+  --font-console-data-metric-lg: var(--font-jetbrains), monospace;
+
+  --text-console-display-header: 14px;
+  --text-console-display-header--line-height: 20px;
+  --text-console-display-header--font-weight: 700;
+  --text-console-display-header--letter-spacing: 0.05em;
+
+  --text-console-body-compact: 13px;
+  --text-console-body-compact--line-height: 18px;
+  --text-console-body-compact--font-weight: 400;
+
+  --text-console-body-sm: 12px;
+  --text-console-body-sm--line-height: 16px;
+  --text-console-body-sm--font-weight: 400;
+
+  --text-console-data-tabular: 13px;
+  --text-console-data-tabular--line-height: 18px;
+  --text-console-data-tabular--font-weight: 500;
+
+  --text-console-data-metric-lg: 20px;
+  --text-console-data-metric-lg--line-height: 24px;
+  --text-console-data-metric-lg--font-weight: 600;
+
+  --text-console-label-caps: 11px;
+  --text-console-label-caps--line-height: 14px;
+  --text-console-label-caps--font-weight: 600;
+  --text-console-label-caps--letter-spacing: 0.08em;
+
+  --spacing-unit: 4px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-gutter: 8px;
+  --spacing-container-margin: 16px;
+}
+
+/* Critical recommendation cards — DESIGN.md "Components > Recommendation
+   Cards": breathing glow at 10-30% opacity on the accent/error color, plus a
+   left-border intensity shift. Not yet applied to any component (shell-only
+   pass); ready for RecCard.tsx when page content is restyled. Automatically
+   neutralized by the existing prefers-reduced-motion rule below. */
+@keyframes pulseGlow {
+  from {
+    box-shadow: 0 0 10px rgba(255, 180, 171, 0.1);
+    border-left-color: rgba(255, 180, 171, 0.5);
+  }
+  to {
+    box-shadow: 0 0 20px rgba(255, 180, 171, 0.3);
+    border-left-color: rgba(255, 180, 171, 1);
+  }
+}
+.pulse-glow {
+  animation: pulseGlow 2s infinite alternate;
+}
+
 /* Design tokens — docs/UX_DESIGN.md §2.1. Dark is the default per the spec
    ("command centers run 24/7 in low light"); light is opt-in via
    [data-theme="light"] (ThemeToggle wires it up). */

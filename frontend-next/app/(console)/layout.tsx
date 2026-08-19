@@ -1,23 +1,34 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { OperationsDataProvider } from "@/lib/operations-context";
 import Sidebar from "@/components/Sidebar";
 import ConsoleTopbar from "@/components/ConsoleTopbar";
-import LoginOverlay from "@/components/LoginOverlay";
 
 // Shared shell for every authenticated route (plan Phase M, UX_DESIGN §3.2).
-// /login doesn't exist yet (plan Phase N) so the auth gate stays inline here
-// for now, same behavior as the old single-page dashboard's guard.
+// Visual language: stitch_eoc_command_console/kinetic_command (Kinetic
+// Command design system) -- glassmorphic dark console shell. Deliberately
+// scoped to the (console) route group, NOT app/layout.tsx (the root layout):
+// wrapping the root would apply this chrome to the public landing page and
+// /login too, which are meant to stay chrome-free.
+// tracker 3.11.2: unauthenticated visitors are redirected to the dedicated
+// /login page instead of an inline overlay, so console routes stay reachable
+// only via a real URL a user can bookmark/share/return to post-login.
 export default function ConsoleLayout({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const router = useRouter();
 
-  if (!user) return <LoginOverlay />;
+  useEffect(() => {
+    if (!user) router.replace("/login");
+  }, [user, router]);
+
+  if (!user) return null;
 
   return (
     <OperationsDataProvider>
-      <div className="flex h-screen w-screen flex-col overflow-hidden">
+      <div className="flex h-screen w-screen flex-col overflow-hidden bg-console-surface-container-lowest">
         <ConsoleTopbar />
         <div className="flex flex-1 overflow-hidden">
           <Sidebar />
