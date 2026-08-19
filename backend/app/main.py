@@ -102,6 +102,14 @@ async def ingest(source_type: str, raw: dict):
     event = normalize(source_type, raw)
     incident_id = raw.get("incident_id") or incidents.assign_incident(event)
 
+    # Enrich the blackboard with resolved state/district for this incident
+    inc = incidents.get(incident_id)
+    if inc:
+        blackboard.merge(
+            incident_id,
+            {"state": inc.get("state"), "district": inc.get("district")},
+        )
+
     recs = orchestrator.run(incident_id, [event])
 
     if alerts.should_push(incident_id, recs):
