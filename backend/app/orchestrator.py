@@ -16,6 +16,7 @@ from typing import TypedDict
 
 from langgraph.graph import StateGraph, END
 
+from . import audit
 from . import blackboard
 from . import recommendations
 from . import severity_grid
@@ -53,7 +54,12 @@ def _make_node(agent):
         current = blackboard.get(state["incident_id"])  # refresh after prior agents
         rec = agent.run(state["incident_id"], state["events"], current)
         rec_dict = rec.model_dump()
+        before = current.get(agent.id, {})
         blackboard.merge(state["incident_id"], {agent.id: rec_dict})
+        audit.record(
+            "system", "agent_recommendation", f"{state['incident_id']}:{agent.id}",
+            before, rec_dict,
+        )
         recommendations.record(rec_dict)
         # DS-1 severity heat-map (tracker 1.5): AG-1 defines disaster severity.
         if agent.id == "AG-1" and rec.geo.type == "Point" and len(rec.geo.coordinates) == 2:
@@ -108,6 +114,13 @@ def _detect_conflicts(state: dict) -> list[dict]:
 
 def run(incident_id: str, events: list[Event]) -> list[dict]:
     result = GRAPH.invoke({"incident_id": incident_id, "events": events, "recs": []})
-    conflicts = _detect_conflicts(blackboard.get(incident_id))
+    state = blackboard.get(incident_id)
+    before_conflicts = state.get("conflicts", [])
+    conflicts = _detect_conflicts(state)
+    if conflicts:
+        audit.record(
+            "system", "conflict_detected", incident_id,
+            {"conflicts": before_conflicts}, {"conflicts": conflicts},
+        )
     blackboard.merge(incident_id, {"conflicts": conflicts})
     return result["recs"]

@@ -1,0 +1,29 @@
+# Local dev infra (tracker 0.2). Optional -- nothing in backend/ requires
+# these to be running. app/blackboard.py falls back to in-memory if REDIS_URL
+# is unset/unreachable; no code path talks to Postgres yet (see tracker 1.3
+# decisions log entry for why that's deferred).
+#
+# Usage: docker compose up -d
+# Then, if you want the app to use it: set REDIS_URL=redis://localhost:6379/0
+# in backend/.env (Postgres has no consumer yet -- provisioned for when 1.3
+# is picked back up, not read by anything today).
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: disaster
+      POSTGRES_PASSWORD: disaster
+      POSTGRES_DB: disaster_response
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
