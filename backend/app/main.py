@@ -16,6 +16,7 @@ from . import alerts
 from . import audit
 from . import auth
 from . import blackboard
+from . import incidents
 from . import metrics
 from . import orchestrator
 from . import recommendations
@@ -98,7 +99,7 @@ def get_resources(user: dict = Depends(auth.require_role("viewer"))):
 @app.post("/ingest/{source_type}")
 async def ingest(source_type: str, raw: dict):
     event = normalize(source_type, raw)
-    incident_id = raw.get("incident_id", "default")
+    incident_id = raw.get("incident_id") or incidents.assign_incident(event)
 
     recs = orchestrator.run(incident_id, [event])
 
