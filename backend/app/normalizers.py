@@ -6,6 +6,7 @@ following the same shape: raw payload in, Event out.
 from __future__ import annotations
 from .models import Event, Geo
 from . import blackboard
+from . import citizen_reports
 from . import citizen_verification
 
 
@@ -79,7 +80,7 @@ def normalize_citizen(raw: dict) -> Event:
     confidence, flagged = citizen_verification.score_confidence(
         incident_id, claimed_severity, state
     )
-    return Event(
+    event = Event(
         source_type="citizen",
         source_id=str(raw.get("reporter_id", "unknown")),
         geo=Geo(type="Point", coordinates=[raw["lon"], raw["lat"]]),
@@ -90,6 +91,17 @@ def normalize_citizen(raw: dict) -> Event:
         },
         confidence=confidence,
     )
+    citizen_reports.record({
+        "event_id": event.event_id,
+        "incident_id": incident_id,
+        "reporter_id": event.source_id,
+        "message": event.payload["message"],
+        "claimed_severity": claimed_severity,
+        "confidence": confidence,
+        "flagged_for_review": flagged,
+        "timestamp": event.timestamp,
+    })
+    return event
 
 
 NORMALIZERS = {

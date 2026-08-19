@@ -4,11 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import {
   API_BASE,
+  fetchCitizenReports,
   fetchIncidentState,
   fetchResources,
   fetchSeverityGeojson,
 } from "@/lib/api";
 import type {
+  CitizenReport,
   IncidentState,
   Recommendation,
   ResourcesResponse,
@@ -24,6 +26,7 @@ import AlertsPanel from "./AlertsPanel";
 import RecommendationsPanel from "./RecommendationsPanel";
 import SituationPanel from "./SituationPanel";
 import ResourcesPanel from "./ResourcesPanel";
+import CitizenInboxPanel from "./CitizenInboxPanel";
 import IngestForm from "./IngestForm";
 
 export default function Dashboard() {
@@ -32,6 +35,7 @@ export default function Dashboard() {
   const [recsById, setRecsById] = useState<Map<string, Recommendation>>(new Map());
   const [severityGeojson, setSeverityGeojson] = useState<GeoJSON.FeatureCollection | null>(null);
   const [incidentState, setIncidentState] = useState<IncidentState | null>(null);
+  const [citizenReports, setCitizenReports] = useState<CitizenReport[]>([]);
   const [wsStatus, setWsStatus] = useState("connecting…");
   const [layersVisible, setLayersVisible] = useState<LayersVisible>({
     severity: true,
@@ -65,11 +69,22 @@ export default function Dashboard() {
     [token]
   );
 
+  // Citizen reports don't wake any agent (tracker 3.3 design) so there's no
+  // WS push for them -- poll instead of relying on the alerts socket.
+  const refreshCitizenReports = useCallback(async () => {
+    const reports = await fetchCitizenReports(token, currentIncidentRef.current ?? undefined);
+    setCitizenReports(reports);
+  }, [token]);
+
   // Load resources + open the WS feed once authenticated (mirrors the
   // onAuthenticated() flow from the original Phase 0 shell, since retired).
   useEffect(() => {
     if (!user) return;
     fetchResources(token).then(setResources).catch(console.error);
+    refreshCitizenReports().catch(console.error);
+    const citizenPoll = setInterval(() => {
+      refreshCitizenReports().catch(console.error);
+    }, 5000);
 
     let ws: WebSocket;
     let closedByUs = false;
@@ -86,14 +101,23 @@ export default function Dashboard() {
         currentIncidentRef.current = msg.incident_id;
         refreshSeverity(msg.incident_id);
         refreshIncidentState(msg.incident_id);
+        refreshCitizenReports();
       };
     }
     connect();
     return () => {
       closedByUs = true;
       ws?.close();
+      clearInterval(citizenPoll);
     };
-  }, [user, token, ingestRecommendations, refreshSeverity, refreshIncidentState]);
+  }, [
+    user,
+    token,
+    ingestRecommendations,
+    refreshSeverity,
+    refreshIncidentState,
+    refreshCitizenReports,
+  ]);
 
   if (!user) return <LoginOverlay />;
 
@@ -139,6 +163,11 @@ export default function Dashboard() {
       title: "Resource Status",
       content: <ResourcesPanel resources={resources} />,
     },
+    {
+      key: "citizen",
+      title: "Citizen Reports",
+      content: <CitizenInboxPanel reports={citizenReports} />,
+    },
   ];
 
   return (
@@ -165,6 +194,7 @@ export default function Dashboard() {
           currentIncidentRef.current = incidentId;
           refreshSeverity(incidentId);
           refreshIncidentState(incidentId);
+          refreshCitizenReports();
         }}
       />
     </div>

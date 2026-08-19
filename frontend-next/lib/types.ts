@@ -55,3 +55,14 @@ export interface IncidentState {
   conflicts?: Conflict[];
   [agentId: string]: Recommendation | Conflict[] | undefined;
 }
+
+export interface CitizenReport {
+  event_id: string;
+  incident_id: string;
+  reporter_id: string;
+  message: string;
+  claimed_severity: number;
+  confidence: number;
+  flagged_for_review: boolean;
+  timestamp: string;
+}

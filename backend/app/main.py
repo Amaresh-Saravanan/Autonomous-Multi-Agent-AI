@@ -16,6 +16,7 @@ from . import alerts
 from . import audit
 from . import auth
 from . import blackboard
+from . import citizen_reports
 from . import incidents
 from . import metrics
 from . import orchestrator
@@ -165,6 +166,17 @@ def reject_recommendation(rec_id: str, user: dict = Depends(auth.require_role("o
 @app.post("/citizen/chat")
 def citizen_chat(body: dict):
     return citizen_agent.chat(body.get("message", ""), body.get("language", "en"))
+
+
+@app.get("/citizen/reports")
+def get_citizen_reports(
+    incident_id: str | None = None,
+    user: dict = Depends(auth.require_role("viewer")),
+):
+    """PRD UI-4: browse citizen reports with their computed trust/verification
+    status (app/citizen_verification.py), instead of that score being thrown
+    away after the ingest response."""
+    return citizen_reports.list_reports(incident_id)
 
 
 @app.websocket("/ws/alerts")
