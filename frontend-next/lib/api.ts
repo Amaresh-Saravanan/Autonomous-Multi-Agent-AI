@@ -1,9 +1,11 @@
 import type {
   AuditEntry,
+  CitizenChatReply,
   CitizenReport,
   CurrentUser,
   IncidentState,
   IncidentSummary,
+  MetricsSummary,
   Recommendation,
   ResourcesResponse,
 } from "./types";
@@ -70,6 +72,25 @@ export async function fetchIncidents(
 export async function fetchAudit(token: string | null): Promise<AuditEntry[]> {
   const res = await authFetch(`${API_BASE}/audit`, token);
   if (!res.ok) throw new Error(`audit fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchMetrics(token: string | null): Promise<MetricsSummary> {
+  const res = await authFetch(`${API_BASE}/metrics`, token);
+  if (!res.ok) throw new Error(`metrics fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function postCitizenChat(
+  message: string,
+  language = "en"
+): Promise<CitizenChatReply> {
+  const res = await fetch(`${API_BASE}/citizen/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, language }),
+  });
+  if (!res.ok) throw new Error(`citizen chat failed: ${res.status}`);
   return res.json();
 }
 

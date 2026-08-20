@@ -71,6 +71,19 @@ export interface IncidentSummary {
   district: string | null;
 }
 
+// GET /metrics (tracker 3.8, operator+).
+export interface MetricsSummary {
+  routes: Record<string, { count: number; avg_latency_ms: number; p95_latency_ms: number }>;
+  recommendation_acceptance_rate: number | null;
+}
+
+// POST /citizen/chat (AG-7, open endpoint — tracker 3.11.6.8).
+export interface CitizenChatReply {
+  reply: string;
+  language: string;
+  llm_used: boolean;
+}
+
 // GET /audit (tracker 3.11.6.10 / BE-2, admin-only).
 export interface AuditEntry {
   actor: string;
