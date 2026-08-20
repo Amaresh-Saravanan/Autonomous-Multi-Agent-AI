@@ -56,6 +56,17 @@ export interface IncidentState {
   [agentId: string]: Recommendation | Conflict[] | undefined;
 }
 
+// GET /incidents (tracker 3.11.6.2 / BE-1) — one row per known incident.
+export interface IncidentSummary {
+  incident_id: string;
+  lat: number | null;
+  lon: number | null;
+  last_ts: number; // epoch seconds
+  count: number;
+  state: string | null;
+  district: string | null;
+}
+
 export interface CitizenReport {
   event_id: string;
   incident_id: string;

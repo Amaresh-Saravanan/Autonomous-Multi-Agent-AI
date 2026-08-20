@@ -2,6 +2,7 @@ import type {
   CitizenReport,
   CurrentUser,
   IncidentState,
+  IncidentSummary,
   Recommendation,
   ResourcesResponse,
 } from "./types";
@@ -46,6 +47,22 @@ export async function fetchResources(
 ): Promise<ResourcesResponse> {
   const res = await authFetch(`${API_BASE}/resources`, token);
   if (!res.ok) throw new Error(`resources fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchRecommendations(
+  token: string | null
+): Promise<Recommendation[]> {
+  const res = await authFetch(`${API_BASE}/recommendations`, token);
+  if (!res.ok) throw new Error(`recommendations fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchIncidents(
+  token: string | null
+): Promise<IncidentSummary[]> {
+  const res = await authFetch(`${API_BASE}/incidents`, token);
+  if (!res.ok) throw new Error(`incidents fetch failed: ${res.status}`);
   return res.json();
 }
 

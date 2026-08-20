@@ -9,7 +9,7 @@ import {
   type GeoJSONSource,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { Recommendation, ResourcesResponse } from "@/lib/types";
+import type { IncidentSummary, Recommendation, ResourcesResponse } from "@/lib/types";
 
 // maplibre-gl builds its worker URL as `new URL("./maplibre-gl-worker.mjs",
 // import.meta.url)` with a dynamically constructed filename, which bundlers
@@ -31,6 +31,11 @@ interface MapViewProps {
   recommendations: Recommendation[];
   severityGeojson: GeoJSON.FeatureCollection | null;
   layersVisible: { severity: boolean; routes: boolean; resources: boolean };
+  // Optional: incident pins (tracker 3.11.5 /map). Dashboard's /command usage
+  // omits these and behaves exactly as before.
+  incidents?: IncidentSummary[];
+  selectedIncidentId?: string | null;
+  onSelectIncident?: (incidentId: string) => void;
 }
 
 // Deepens CARTO Dark Matter's default blacks/grays to match this dashboard's
@@ -65,11 +70,15 @@ export default function MapView({
   recommendations,
   severityGeojson,
   layersVisible,
+  incidents,
+  selectedIncidentId,
+  onSelectIncident,
 }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MaplibreMap | null>(null);
   const loadedRef = useRef(false);
   const resourceMarkersRef = useRef<Marker[]>([]);
+  const incidentMarkersRef = useRef<Marker[]>([]);
   const recMarkersRef = useRef<Map<string, Marker>>(new Map());
 
   useEffect(() => {
@@ -155,6 +164,32 @@ export default function MapView({
       );
     });
   }, [resources]);
+
+  // Incident pins (tracker 3.11.5 /map) — plots every known incident from
+  // GET /incidents, not just ones with a live recommendation this session.
+  // Selected pin uses the console-primary color, others a neutral outline
+  // gray, matching the Kinetic Command palette.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !incidents) return;
+    incidentMarkersRef.current.forEach((m) => m.remove());
+    incidentMarkersRef.current = [];
+    incidents.forEach((inc) => {
+      if (inc.lat == null || inc.lon == null) return;
+      const selected = inc.incident_id === selectedIncidentId;
+      const marker = new Marker({ color: selected ? "#adc6ff" : "#8c909f" })
+        .setLngLat([inc.lon, inc.lat])
+        .setPopup(
+          new Popup().setText(
+            `${inc.incident_id}${inc.district ? ` — ${inc.district}` : ""}`
+          )
+        )
+        .addTo(map);
+      marker.getElement().style.cursor = "pointer";
+      marker.getElement().addEventListener("click", () => onSelectIncident?.(inc.incident_id));
+      incidentMarkersRef.current.push(marker);
+    });
+  }, [incidents, selectedIncidentId, onSelectIncident]);
 
   // Resource marker visibility toggle
   useEffect(() => {
