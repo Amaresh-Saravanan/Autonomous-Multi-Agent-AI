@@ -23,7 +23,7 @@ from . import orchestrator
 from . import recommendations
 from . import severity_grid
 from .normalizers import normalize
-from .resources import HOSPITALS, SHELTERS, TEAMS, AMBULANCES
+from .resources import HOSPITALS, SHELTERS, TEAMS, AMBULANCES, SUPPLIES
 from agents import citizen as citizen_agent
 
 # frontend-next/ (Next.js + Tailwind) runs its own dev server on :3000 and is
@@ -94,13 +94,35 @@ def get_resources(user: dict = Depends(auth.require_role("viewer"))):
         "shelters": SHELTERS,
         "teams": TEAMS,
         "ambulances": AMBULANCES,
+        "supplies": SUPPLIES,
     }
+
+
+@app.get("/incidents")
+def list_incidents(user: dict = Depends(auth.require_role("viewer"))):
+    """List known incidents (tracker 3.11.6.2 / BE-1) — newest-activity-first.
+    GET /incidents/{id} still requires already knowing the id; this is what
+    lets the frontend enumerate them in the first place."""
+    return incidents.list_incidents()
+
+
+@app.get("/audit")
+def list_audit(user: dict = Depends(auth.require_role("admin"))):
+    """Audit trail (tracker 3.11.6.10 / BE-2) — admin-only per UX_DESIGN §3.4."""
+    return audit.all_entries()
 
 
 @app.post("/ingest/{source_type}")
 async def ingest(source_type: str, raw: dict):
     event = normalize(source_type, raw)
-    incident_id = raw.get("incident_id") or incidents.assign_incident(event)
+    explicit_id = raw.get("incident_id")
+    incident_id = explicit_id or incidents.assign_incident(event)
+    if explicit_id:
+        # assign_incident already registers auto-clustered incidents; an
+        # explicit incident_id bypasses it entirely, so register it here too
+        # (BE-1: GET /incidents needs to see every incident, not just
+        # auto-clustered ones).
+        incidents.touch(incident_id, event)
 
     # Enrich the blackboard with resolved state/district for this incident
     inc = incidents.get(incident_id)

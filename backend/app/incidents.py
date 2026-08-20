@@ -53,14 +53,14 @@ def _point(event: Event) -> tuple[float, float] | None:
     return None
 
 
-def _new_incident(
+def _register(
+    incident_id: str,
     lat: float | None,
     lon: float | None,
     ts: float,
     state: str | None = None,
     district: str | None = None,
-) -> str:
-    incident_id = f"incident-{len(_incidents) + 1}"
+) -> None:
     _incidents[incident_id] = {
         "lat": lat,
         "lon": lon,
@@ -69,7 +69,41 @@ def _new_incident(
         "state": state,
         "district": district,
     }
+
+
+def _new_incident(
+    lat: float | None,
+    lon: float | None,
+    ts: float,
+    state: str | None = None,
+    district: str | None = None,
+) -> str:
+    incident_id = f"incident-{len(_incidents) + 1}"
+    _register(incident_id, lat, lon, ts, state, district)
     return incident_id
+
+
+def touch(incident_id: str, event: Event) -> None:
+    """Register/refresh `incident_id` in the registry when it was supplied
+    explicitly by the caller (bypassing assign_incident's clustering, which
+    is the only other writer). Without this, explicit-id incidents — most of
+    real traffic, since callers usually already know their incident_id — were
+    invisible to GET /incidents (BE-1) and never got state/district
+    blackboard enrichment. Call only for explicit ids; assign_incident's own
+    path already registers itself."""
+    ts = _parse_ts(event.timestamp)
+    if incident_id in _incidents:
+        inc = _incidents[incident_id]
+        inc["last_ts"] = max(inc["last_ts"], ts)
+        inc["count"] += 1
+        return
+    point = _point(event)
+    if point is None:
+        _register(incident_id, None, None, ts)
+        return
+    lon, lat = point
+    state, district = geocode.reverse(lat, lon)
+    _register(incident_id, lat, lon, ts, state, district)
 
 
 def assign_incident(event: Event) -> str:
@@ -124,3 +158,13 @@ def reset() -> None:
 def get(incident_id: str) -> dict | None:
     """Return the incident's state/district + other fields, or None if not found."""
     return _incidents.get(incident_id)
+
+
+def list_incidents() -> list[dict]:
+    """All known incidents, newest-activity-first (tracker 3.11.6.2 / BE-1)."""
+    return [
+        {"incident_id": incident_id, **inc}
+        for incident_id, inc in sorted(
+            _incidents.items(), key=lambda kv: kv[1]["last_ts"], reverse=True
+        )
+    ]
