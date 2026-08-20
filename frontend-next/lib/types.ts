@@ -39,7 +39,11 @@ export interface ResourceItem {
 
 export type ResourceCategory = "hospitals" | "shelters" | "teams" | "ambulances";
 
-export type ResourcesResponse = Record<ResourceCategory, ResourceItem[]>;
+// supplies added via BE-3 (tracker 3.11.6.5) — food/water/blankets counts,
+// not per-item like the other four categories.
+export type ResourcesResponse = Record<ResourceCategory, ResourceItem[]> & {
+  supplies?: Record<string, number>;
+};
 
 export interface Conflict {
   agents: string[];
@@ -65,6 +69,16 @@ export interface IncidentSummary {
   count: number;
   state: string | null;
   district: string | null;
+}
+
+// GET /audit (tracker 3.11.6.10 / BE-2, admin-only).
+export interface AuditEntry {
+  actor: string;
+  action: string;
+  target: string;
+  before: Record<string, unknown>;
+  after: Record<string, unknown>;
+  timestamp: string;
 }
 
 export interface CitizenReport {

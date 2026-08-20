@@ -1,4 +1,5 @@
 import type {
+  AuditEntry,
   CitizenReport,
   CurrentUser,
   IncidentState,
@@ -63,6 +64,12 @@ export async function fetchIncidents(
 ): Promise<IncidentSummary[]> {
   const res = await authFetch(`${API_BASE}/incidents`, token);
   if (!res.ok) throw new Error(`incidents fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchAudit(token: string | null): Promise<AuditEntry[]> {
+  const res = await authFetch(`${API_BASE}/audit`, token);
+  if (!res.ok) throw new Error(`audit fetch failed: ${res.status}`);
   return res.json();
 }
 

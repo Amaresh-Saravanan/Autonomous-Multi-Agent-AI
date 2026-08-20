@@ -9,7 +9,12 @@ import {
   type GeoJSONSource,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { IncidentSummary, Recommendation, ResourcesResponse } from "@/lib/types";
+import type {
+  IncidentSummary,
+  Recommendation,
+  ResourceCategory,
+  ResourcesResponse,
+} from "@/lib/types";
 
 // maplibre-gl builds its worker URL as `new URL("./maplibre-gl-worker.mjs",
 // import.meta.url)` with a dynamically constructed filename, which bundlers
@@ -19,7 +24,7 @@ import type { IncidentSummary, Recommendation, ResourcesResponse } from "@/lib/t
 // maplibre-gl's own documented workaround for this.
 setWorkerUrl("/maplibre-gl-worker.mjs");
 
-const RESOURCE_COLORS: Record<string, string> = {
+const RESOURCE_COLORS: Record<ResourceCategory, string> = {
   hospitals: "#EF4444",
   shelters: "#3B82F6",
   teams: "#A855F7",
@@ -148,8 +153,8 @@ export default function MapView({
     if (!map || !resources) return;
     resourceMarkersRef.current.forEach((m) => m.remove());
     resourceMarkersRef.current = [];
-    Object.entries(RESOURCE_COLORS).forEach(([category, color]) => {
-      (resources[category as keyof ResourcesResponse] || []).forEach(
+    (Object.entries(RESOURCE_COLORS) as [ResourceCategory, string][]).forEach(([category, color]) => {
+      (resources[category] || []).forEach(
         (item) => {
           const marker = new Marker({ color })
             .setLngLat([item.lon, item.lat])
