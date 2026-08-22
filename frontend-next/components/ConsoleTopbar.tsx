@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Wifi, User as UserIcon } from "lucide-react";
+import { Bell, Menu, Wifi, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useOperationsData } from "@/lib/operations-context";
 import ThemeToggle from "./ThemeToggle";
@@ -24,7 +24,7 @@ function useClock() {
 // what BrandBar.tsx and WhoAmI.tsx each used to own separately on the old
 // single-page dashboard. Visual language: stitch_eoc_command_console/
 // kinetic_command (Kinetic Command design system).
-export default function ConsoleTopbar() {
+export default function ConsoleTopbar({ onMenuClick }: { onMenuClick?: () => void } = {}) {
   const { user, logout } = useAuth();
   const { recommendations, wsStatus } = useOperationsData();
   const clock = useClock();
@@ -39,6 +39,13 @@ export default function ConsoleTopbar() {
   return (
     <header className="flex h-10 items-center justify-between border-b border-console-outline-variant/30 bg-console-surface/80 px-lg backdrop-blur-xl">
       <div className="flex items-center gap-md">
+        <button
+          onClick={onMenuClick}
+          aria-label="Toggle navigation"
+          className="flex items-center justify-center rounded-md p-unit text-console-on-surface-variant hover:bg-console-surface-bright/50 md:hidden"
+        >
+          <Menu className="h-[18px] w-[18px]" />
+        </button>
         <span className="font-console-display-header text-console-display-header uppercase tracking-wider text-console-primary">
           EOC
         </span>
@@ -59,7 +66,7 @@ export default function ConsoleTopbar() {
         </div>
         {criticalCount > 0 && (
           <span
-            className="font-console-data-tabular text-console-data-tabular"
+            className="hidden font-console-data-tabular text-console-data-tabular sm:inline"
             style={{ color: "var(--sev-critical)" }}
           >
             ⚠ {criticalCount} critical
@@ -67,14 +74,14 @@ export default function ConsoleTopbar() {
         )}
         {highCount > 0 && (
           <span
-            className="font-console-data-tabular text-console-data-tabular"
+            className="hidden font-console-data-tabular text-console-data-tabular sm:inline"
             style={{ color: "var(--sev-high)" }}
           >
             ▲ {highCount} high
           </span>
         )}
         <span
-          className="font-console-data-tabular text-console-data-tabular text-console-on-surface-variant"
+          className="hidden font-console-data-tabular text-console-data-tabular text-console-on-surface-variant md:inline"
           suppressHydrationWarning
         >
           {wsStatus}
@@ -96,7 +103,7 @@ export default function ConsoleTopbar() {
         <ThemeToggle />
         {user && (
           <>
-            <span className="font-console-body-sm text-console-body-sm text-console-on-surface-variant">
+            <span className="hidden font-console-body-sm text-console-body-sm text-console-on-surface-variant sm:inline">
               {user.username} ({user.role})
             </span>
             <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-console-outline-variant/50 bg-console-surface-container-highest">

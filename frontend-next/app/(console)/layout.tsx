@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { OperationsDataProvider } from "@/lib/operations-context";
@@ -19,6 +19,7 @@ import ConsoleTopbar from "@/components/ConsoleTopbar";
 export default function ConsoleLayout({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const router = useRouter();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (!user) router.replace("/login");
@@ -29,9 +30,9 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
   return (
     <OperationsDataProvider>
       <div className="flex h-screen w-screen flex-col overflow-hidden bg-console-surface-container-lowest">
-        <ConsoleTopbar />
+        <ConsoleTopbar onMenuClick={() => setMobileNavOpen((v) => !v)} />
         <div className="flex flex-1 overflow-hidden">
-          <Sidebar />
+          <Sidebar mobileOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
           <main className="relative flex-1 overflow-hidden">{children}</main>
         </div>
       </div>

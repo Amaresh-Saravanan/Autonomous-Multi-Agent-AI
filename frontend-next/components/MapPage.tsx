@@ -61,7 +61,7 @@ export default function MapPage() {
       />
 
       {/* Left rail: layers + incident list */}
-      <div className="absolute top-md left-md z-20 flex w-64 flex-col gap-md">
+      <div className="absolute top-md left-md z-20 flex w-64 max-w-[calc(100vw-2rem)] flex-col gap-md">
         <div className="rounded-xl border border-console-outline-variant/40 bg-console-surface/85 p-md shadow-lg backdrop-blur-xl">
           <h3 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
             Layers
@@ -104,7 +104,7 @@ export default function MapPage() {
 
       {/* Right sheet: selected incident detail */}
       {selected && (
-        <div className="absolute top-md right-md bottom-md z-20 flex w-80 flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/85 shadow-lg backdrop-blur-xl">
+        <div className="absolute top-md right-md bottom-md z-20 flex w-80 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/85 shadow-lg backdrop-blur-xl">
           <div className="flex items-center justify-between border-b border-console-outline-variant/20 bg-console-surface-container-low/50 px-md py-sm">
             <h3 className="font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
               {selected.incident_id}

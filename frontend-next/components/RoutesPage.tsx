@@ -26,7 +26,7 @@ export default function RoutesPage() {
         layersVisible={layersVisible}
       />
 
-      <div className="absolute top-md right-md bottom-md z-20 flex w-80 flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/85 shadow-lg backdrop-blur-xl">
+      <div className="absolute top-md right-md bottom-md z-20 flex w-80 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/85 shadow-lg backdrop-blur-xl">
         <div className="border-b border-console-outline-variant/20 bg-console-surface-container-low/50 px-md py-sm">
           <h3 className="font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
             Routes ({routeRecs.length})
