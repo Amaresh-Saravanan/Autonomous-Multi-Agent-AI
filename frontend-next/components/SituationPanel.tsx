@@ -23,18 +23,24 @@ const SEV_LABEL: Record<string, string> = {
 
 export default function SituationPanel({ summary }: { summary?: Recommendation }) {
   if (!summary) {
-    return <div className="text-xs text-[var(--text-muted)]">No incident activity yet.</div>;
+    return (
+      <div className="font-console-body-sm text-console-body-sm text-console-on-surface-variant">
+        No incident activity yet.
+      </div>
+    );
   }
   const cls = sevClass(summary.severity);
   return (
-    <div className="text-xs">
+    <div>
       <span
-        className="mb-1.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide"
+        className="mb-1.5 inline-block rounded px-1.5 py-0.5 font-console-label-caps text-[9px] font-bold tracking-wide"
         style={{ color: BORDER_COLOR[cls], border: `1px solid ${BORDER_COLOR[cls]}` }}
       >
         {SEV_LABEL[cls]}
       </span>
-      <p className="text-[var(--text-muted)]">{summary.rationale}</p>
+      <p className="font-console-body-sm text-console-body-sm leading-relaxed text-console-on-surface-variant">
+        {summary.rationale}
+      </p>
     </div>
   );
 }

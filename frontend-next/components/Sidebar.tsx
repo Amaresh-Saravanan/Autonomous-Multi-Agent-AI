@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -87,7 +87,7 @@ export default function Sidebar({
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } ${collapsed ? "md:w-14" : "w-44"}`}
       >
-      <div className="flex items-center gap-sm border-b border-console-outline-variant/20 p-md">
+      <div className="flex items-center gap-console-sm border-b border-console-outline-variant/20 p-console-md">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-console-outline/20 bg-console-surface-container-high">
           <ShieldCheck className="h-[18px] w-[18px] text-console-primary" />
         </div>
@@ -103,7 +103,7 @@ export default function Sidebar({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-unit overflow-y-auto px-xs py-sm">
+      <div className="flex flex-1 flex-col gap-unit overflow-y-auto px-console-xs py-console-sm">
         {visible.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
@@ -113,7 +113,7 @@ export default function Sidebar({
               href={item.href}
               onClick={onClose}
               title={collapsed ? item.label : undefined}
-              className={`flex items-center gap-sm rounded-md px-sm py-[6px] transition-all duration-200 ease-in-out ${
+              className={`flex items-center gap-console-sm rounded-md px-console-sm py-[6px] transition-all duration-200 ease-in-out ${
                 active
                   ? "border-l-2 border-console-primary bg-console-primary/10 text-console-primary"
                   : "text-console-on-surface-variant hover:bg-console-surface-container/40 hover:text-console-on-surface"
@@ -133,7 +133,7 @@ export default function Sidebar({
       <button
         onClick={() => setCollapsed((v) => !v)}
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className="hidden items-center justify-center gap-sm border-t border-console-outline-variant/20 p-sm text-console-on-surface-variant hover:bg-console-surface-container/40 hover:text-console-on-surface md:flex"
+        className="hidden items-center justify-center gap-console-sm border-t border-console-outline-variant/20 p-console-sm text-console-on-surface-variant hover:bg-console-surface-container/40 hover:text-console-on-surface md:flex"
       >
         {collapsed ? (
           <ChevronsRight className="h-[16px] w-[16px]" />

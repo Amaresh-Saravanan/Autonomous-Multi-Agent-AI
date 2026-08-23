@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, type ReactNode } from "react";
 import GridLayout, { useContainerWidth, type Layout } from "react-grid-layout";
@@ -110,25 +110,25 @@ export default function DashboardGrid({
           {tiles.map((tile) => (
             <div key={tile.key} className="pointer-events-auto">
               <div
-                className={`glass-panel flex h-full flex-col overflow-hidden ${
-                  editMode ? "outline-2 outline-dashed outline-[var(--accent)]" : ""
+                className={`flex h-full flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/80 shadow-lg backdrop-blur-xl ${
+                  editMode ? "outline-2 outline-dashed outline-console-primary" : ""
                 }`}
               >
                 <div
-                  className={`tile-handle flex items-center justify-between px-3 py-2 ${
-                    editMode ? "cursor-move bg-white/5" : ""
+                  className={`tile-handle flex items-center justify-between border-b border-console-outline-variant/20 px-console-md py-console-sm ${
+                    editMode ? "cursor-move bg-console-surface-container/50" : ""
                   }`}
                 >
-                  <span className="text-xs font-bold tracking-wider text-[var(--text-muted)] uppercase">
+                  <span className="font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
                     {tile.title}
                   </span>
                   {editMode && (
-                    <span className="text-[var(--text-muted)]" aria-hidden>
+                    <span className="text-console-on-surface-variant" aria-hidden>
                       ⠿
                     </span>
                   )}
                 </div>
-                <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
+                <div className="min-h-0 flex-1 overflow-y-auto px-console-md pb-console-md">
                   {tile.content}
                 </div>
               </div>

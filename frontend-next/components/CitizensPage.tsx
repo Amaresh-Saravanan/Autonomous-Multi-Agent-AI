@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -55,18 +55,18 @@ export default function CitizensPage() {
   }
 
   return (
-    <div className="grid h-full grid-cols-1 gap-lg overflow-hidden p-lg lg:grid-cols-2">
+    <div className="grid h-full grid-cols-1 gap-console-lg overflow-hidden p-console-lg lg:grid-cols-2">
       {/* Reports column */}
       <div className="flex flex-col overflow-hidden">
-        <h1 className="mb-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
+        <h1 className="mb-console-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
           Citizen Reports ({filtered.length})
         </h1>
-        <div className="mb-md flex gap-1">
+        <div className="mb-console-md flex gap-1">
           {(["all", "flagged", "high-severity", "low-trust"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`rounded-md px-sm py-sm font-console-label-caps text-[10px] uppercase transition-colors ${
+              className={`rounded-md px-console-sm py-console-sm font-console-label-caps text-[10px] uppercase transition-colors ${
                 filter === f
                   ? "bg-console-primary/20 text-console-primary"
                   : "text-console-on-surface-variant hover:bg-console-surface-container/40"
@@ -80,7 +80,7 @@ export default function CitizensPage() {
           {filtered.map((r) => (
             <div
               key={r.event_id}
-              className="mb-sm rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-md py-sm"
+              className="mb-console-sm rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-console-md py-console-sm"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-console-data-tabular text-console-data-tabular text-console-on-surface">
@@ -110,16 +110,16 @@ export default function CitizensPage() {
 
       {/* AG-7 chat column */}
       <div className="flex flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/80 shadow-lg backdrop-blur-xl">
-        <div className="border-b border-console-outline-variant/20 bg-console-surface-container-low/50 px-md py-sm">
+        <div className="border-b border-console-outline-variant/20 bg-console-surface-container-low/50 px-console-md py-console-sm">
           <h2 className="font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
             AG-7 Citizen Assistance
           </h2>
         </div>
-        <div className="flex-1 overflow-y-auto p-md">
+        <div className="flex-1 overflow-y-auto p-console-md">
           {messages.map((m, i) => (
-            <div key={i} className={`mb-sm flex ${m.role === "citizen" ? "justify-end" : "justify-start"}`}>
+            <div key={i} className={`mb-console-sm flex ${m.role === "citizen" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`max-w-[80%] rounded-md px-sm py-sm font-console-body-sm text-console-body-sm ${
+                className={`max-w-[80%] rounded-md px-console-sm py-console-sm font-console-body-sm text-console-body-sm ${
                   m.role === "citizen"
                     ? "bg-console-primary/20 text-console-on-surface"
                     : "bg-console-surface-container/60 text-console-on-surface-variant"
@@ -135,18 +135,18 @@ export default function CitizensPage() {
             </div>
           )}
         </div>
-        <form onSubmit={handleSend} className="flex gap-sm border-t border-console-outline-variant/20 p-sm">
+        <form onSubmit={handleSend} className="flex gap-console-sm border-t border-console-outline-variant/20 p-console-sm">
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Type a message…"
             disabled={sending}
-            className="flex-1 rounded-md border border-console-outline-variant/40 bg-console-surface-container/60 px-sm py-sm font-console-body-compact text-console-body-compact text-console-on-surface placeholder:text-console-outline focus:border-console-primary focus:outline-none"
+            className="flex-1 rounded-md border border-console-outline-variant/40 bg-console-surface-container/60 px-console-sm py-console-sm font-console-body-compact text-console-body-compact text-console-on-surface placeholder:text-console-outline focus:border-console-primary focus:outline-none"
           />
           <button
             type="submit"
             disabled={sending}
-            className="rounded-md bg-console-primary px-md py-sm font-console-label-caps text-console-label-caps text-console-on-primary transition-colors hover:bg-console-primary-container disabled:opacity-50"
+            className="rounded-md bg-console-primary px-console-md py-console-sm font-console-label-caps text-console-label-caps text-console-on-primary transition-colors hover:bg-console-primary-container disabled:opacity-50"
           >
             {sending ? "…" : "Send"}
           </button>

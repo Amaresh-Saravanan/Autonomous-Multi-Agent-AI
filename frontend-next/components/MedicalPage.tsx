@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useOperationsData } from "@/lib/operations-context";
 
@@ -27,14 +27,14 @@ export default function MedicalPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-lg">
-      <h1 className="mb-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
+    <div className="h-full overflow-y-auto p-console-lg">
+      <h1 className="mb-console-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
         Medical
       </h1>
 
       {casualtyRec && (
-        <div className="mb-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-md shadow-lg backdrop-blur-xl">
-          <h2 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-primary">
+        <div className="mb-console-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-console-md shadow-lg backdrop-blur-xl">
+          <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-primary">
             AG-4 Dispatch — {casualtyRec.incident_id}
           </h2>
           <div className="font-console-data-tabular text-console-data-tabular text-console-on-surface">
@@ -46,9 +46,9 @@ export default function MedicalPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-lg lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-console-lg lg:grid-cols-2">
         <div>
-          <h2 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
+          <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
             Hospital Capacity
           </h2>
           <div className="overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/80 shadow-lg backdrop-blur-xl">
@@ -60,11 +60,11 @@ export default function MedicalPage() {
                   const low = cap > 0 && free / cap < 0.2;
                   return (
                     <tr key={h.id} className={`border-b border-console-outline-variant/10 last:border-0 ${low ? "bg-[var(--sev-critical)]/10" : ""}`}>
-                      <td className="px-md py-sm font-console-body-compact text-console-body-compact text-console-on-surface">
+                      <td className="px-console-md py-console-sm font-console-body-compact text-console-body-compact text-console-on-surface">
                         {String(h.name ?? h.id)}
                       </td>
                       <td
-                        className={`px-md py-sm text-right font-console-data-tabular text-console-data-tabular ${
+                        className={`px-console-md py-console-sm text-right font-console-data-tabular text-console-data-tabular ${
                           low ? "font-bold text-[var(--sev-critical)]" : "text-console-on-surface-variant"
                         }`}
                       >
@@ -80,7 +80,7 @@ export default function MedicalPage() {
         </div>
 
         <div>
-          <h2 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
+          <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
             Ambulance Fleet
           </h2>
           <div className="overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/80 shadow-lg backdrop-blur-xl">
@@ -88,10 +88,10 @@ export default function MedicalPage() {
               <tbody>
                 {resources.ambulances.map((a) => (
                   <tr key={a.id} className="border-b border-console-outline-variant/10 last:border-0">
-                    <td className="px-md py-sm font-console-data-tabular text-console-data-tabular text-console-on-surface">
+                    <td className="px-console-md py-console-sm font-console-data-tabular text-console-data-tabular text-console-on-surface">
                       {String(a.name ?? a.id)}
                     </td>
-                    <td className="px-md py-sm text-right font-console-body-compact text-console-body-compact text-console-on-surface-variant">
+                    <td className="px-console-md py-console-sm text-right font-console-body-compact text-console-body-compact text-console-on-surface-variant">
                       {String(a.status ?? "unknown")}
                     </td>
                   </tr>
@@ -103,11 +103,11 @@ export default function MedicalPage() {
       </div>
 
       {resources.supplies && (
-        <div className="mt-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-md shadow-lg backdrop-blur-xl">
-          <h2 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
+        <div className="mt-console-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-console-md shadow-lg backdrop-blur-xl">
+          <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
             Emergency Supplies
           </h2>
-          <div className="flex gap-lg">
+          <div className="flex gap-console-lg">
             {Object.entries(resources.supplies).map(([key, value]) => (
               <div key={key}>
                 <div className="font-console-label-caps text-[10px] uppercase text-console-on-surface-variant">

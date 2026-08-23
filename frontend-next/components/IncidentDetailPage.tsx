@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -27,8 +27,8 @@ export default function IncidentDetailPage({ incidentId }: { incidentId: string 
   const conflicts = state?.conflicts ?? [];
 
   return (
-    <div className="h-full overflow-y-auto p-lg">
-      <div className="mb-lg flex items-center justify-between">
+    <div className="h-full overflow-y-auto p-console-lg">
+      <div className="mb-console-lg flex items-center justify-between">
         <div>
           <h1 className="font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
             {incidentId}
@@ -36,15 +36,15 @@ export default function IncidentDetailPage({ incidentId }: { incidentId: string 
         </div>
         <Link
           href={`/map`}
-          className="rounded-md border border-console-outline-variant/30 bg-console-surface-container/80 px-md py-sm font-console-label-caps text-console-label-caps text-console-on-surface hover:bg-console-surface-bright/80"
+          className="rounded-md border border-console-outline-variant/30 bg-console-surface-container/80 px-console-md py-console-sm font-console-label-caps text-console-label-caps text-console-on-surface hover:bg-console-surface-bright/80"
         >
           View on map
         </Link>
       </div>
 
       {situationSummary && (
-        <div className="mb-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-md shadow-lg backdrop-blur-xl">
-          <h2 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-primary">
+        <div className="mb-console-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-console-md shadow-lg backdrop-blur-xl">
+          <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-primary">
             Situation Summary (AG-8)
           </h2>
           <p className="font-console-body-sm text-console-body-sm leading-relaxed text-console-on-surface-variant">
@@ -54,12 +54,12 @@ export default function IncidentDetailPage({ incidentId }: { incidentId: string 
       )}
 
       {conflicts.length > 0 && (
-        <div className="mb-lg rounded-xl border border-[var(--sev-critical)] bg-[var(--sev-critical)]/10 p-md">
-          <h2 className="mb-sm font-console-label-caps text-console-label-caps font-bold uppercase text-[var(--sev-critical)]">
+        <div className="mb-console-lg rounded-xl border border-[var(--sev-critical)] bg-[var(--sev-critical)]/10 p-console-md">
+          <h2 className="mb-console-sm font-console-label-caps text-console-label-caps font-bold uppercase text-[var(--sev-critical)]">
             ⚠ {conflicts.length} Conflict{conflicts.length > 1 ? "s" : ""}
           </h2>
           {conflicts.map((c, i) => (
-            <div key={i} className="mb-sm last:mb-0">
+            <div key={i} className="mb-console-sm last:mb-0">
               <p className="font-console-body-sm text-console-body-sm text-console-on-surface-variant">
                 {c.rationale}
               </p>
@@ -71,14 +71,14 @@ export default function IncidentDetailPage({ incidentId }: { incidentId: string 
         </div>
       )}
 
-      <h2 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
+      <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
         Agent Outputs
       </h2>
-      <div className="mb-lg grid grid-cols-1 gap-sm md:grid-cols-2 lg:grid-cols-3">
+      <div className="mb-console-lg grid grid-cols-1 gap-console-sm md:grid-cols-2 lg:grid-cols-3">
         {agents.map(([agentId, rec]) => (
           <div
             key={agentId}
-            className="rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-md py-sm"
+            className="rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-console-md py-console-sm"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-console-data-tabular text-console-data-tabular font-semibold text-console-on-surface">
@@ -103,14 +103,14 @@ export default function IncidentDetailPage({ incidentId }: { incidentId: string 
         )}
       </div>
 
-      <h2 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
+      <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
         Citizen Reports ({reports.length})
       </h2>
       <div className="flex flex-col gap-2">
         {reports.map((r) => (
           <div
             key={r.event_id}
-            className="rounded-md border border-console-outline-variant/20 bg-console-surface-container/40 px-md py-sm"
+            className="rounded-md border border-console-outline-variant/20 bg-console-surface-container/40 px-console-md py-console-sm"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-console-data-tabular text-console-data-tabular text-console-on-surface">

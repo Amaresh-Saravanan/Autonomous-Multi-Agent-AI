@@ -34,7 +34,7 @@ export default function ThemeToggle() {
       onClick={toggle}
       aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
       title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-      className="cursor-pointer rounded border border-[var(--border)] bg-white/5 px-1.5 py-0.5 text-[var(--text-primary)] hover:bg-white/15"
+      className="flex cursor-pointer items-center justify-center rounded-md p-unit text-console-on-surface-variant transition-colors hover:bg-console-surface-bright/50 active:scale-95"
     >
       {theme === "dark" ? "☾" : "☀"}
     </button>

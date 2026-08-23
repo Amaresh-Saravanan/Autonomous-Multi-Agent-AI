@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
@@ -42,18 +42,18 @@ export default function RecommendationsPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-lg">
-      <h1 className="mb-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
+    <div className="h-full overflow-y-auto p-console-lg">
+      <h1 className="mb-console-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
         Recommendations
       </h1>
 
-      <div className="mb-md flex flex-wrap items-center gap-md">
+      <div className="mb-console-md flex flex-wrap items-center gap-console-md">
         <div className="flex gap-1">
           {TABS.map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`rounded-md px-md py-sm font-console-label-caps text-console-label-caps uppercase transition-colors ${
+              className={`rounded-md px-console-md py-console-sm font-console-label-caps text-console-label-caps uppercase transition-colors ${
                 tab === t
                   ? "bg-console-primary/20 text-console-primary"
                   : "text-console-on-surface-variant hover:bg-console-surface-container/40"
@@ -67,7 +67,7 @@ export default function RecommendationsPage() {
         <select
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value)}
-          className="rounded-md border border-console-outline-variant/40 bg-console-surface-container/60 px-sm py-sm font-console-body-sm text-console-body-sm text-console-on-surface"
+          className="rounded-md border border-console-outline-variant/40 bg-console-surface-container/60 px-console-sm py-console-sm font-console-body-sm text-console-body-sm text-console-on-surface"
         >
           <option value="all">All severities</option>
           <option value="critical">Critical</option>
@@ -78,7 +78,7 @@ export default function RecommendationsPage() {
         <select
           value={agentFilter}
           onChange={(e) => setAgentFilter(e.target.value)}
-          className="rounded-md border border-console-outline-variant/40 bg-console-surface-container/60 px-sm py-sm font-console-body-sm text-console-body-sm text-console-on-surface"
+          className="rounded-md border border-console-outline-variant/40 bg-console-surface-container/60 px-console-sm py-console-sm font-console-body-sm text-console-body-sm text-console-on-surface"
         >
           <option value="all">All agents</option>
           {agentIds.map((id) => (

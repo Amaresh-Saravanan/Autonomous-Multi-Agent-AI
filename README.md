@@ -31,10 +31,13 @@ npm install
 npm run dev      # serves on http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000), log in with a seed user
-(see `docs/RUNBOOK.md`), and you get the live command-center map + draggable
-alert/recommendation panels, with a button to simulate a critical sensor
-spike. It connects to `localhost:8000`.
+Open [http://localhost:3000](http://localhost:3000). The frontend is moving from
+one congested dashboard into the operations-console route plan in
+`docs/UX_DESIGN.md`: public landing/auth pages, then authenticated workspaces such
+as `/command`, `/map`, `/alerts`, `/incidents`, `/recommendations`, `/resources`,
+`/routes`, `/medical`, `/citizens`, `/agents`, `/audit`, and `/settings`. The
+current app still connects to `localhost:8000`; log in with a seed user from
+`docs/RUNBOOK.md`.
 
 ## Test it
 
@@ -53,9 +56,10 @@ python -m pytest tests/test_slice.py -v
   summary via LLM or rule-based join
 - **Real-time:** WebSocket push of recommendations to map
 - **Frontend:** Next.js + TypeScript + Tailwind app (`frontend-next/`) —
-  command-center map, draggable panels, framer-motion, theming, per-role
-  layouts, per `docs/UX_DESIGN.md` (the original Phase 0 `frontend/index.html`
-  shell has been retired)
+  currently a command-center map with draggable panels, framer-motion, theming,
+  and per-role layouts. The next UX target is the multi-page operations console
+  documented in `docs/UX_DESIGN.md` and tracked as Phase 3.11 in
+  `docs/MIGRATION_TRACKER.md`.
 
 ### Deferred to Phase 2+ (see `docs/MIGRATION_TRACKER.md`)
 - AG-2 (Damage), AG-3 (Rescue), AG-4 (Medical), AG-5 (Resources), AG-6 (Routes),

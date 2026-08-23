@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Bell, Menu, Wifi, User as UserIcon } from "lucide-react";
@@ -37,8 +37,8 @@ export default function ConsoleTopbar({ onMenuClick }: { onMenuClick?: () => voi
   ).length;
 
   return (
-    <header className="flex h-10 items-center justify-between border-b border-console-outline-variant/30 bg-console-surface/80 px-lg backdrop-blur-xl">
-      <div className="flex items-center gap-md">
+    <header className="flex h-10 items-center justify-between border-b border-console-outline-variant/30 bg-console-surface/80 px-console-lg backdrop-blur-xl">
+      <div className="flex items-center gap-console-md">
         <button
           onClick={onMenuClick}
           aria-label="Toggle navigation"
@@ -49,7 +49,7 @@ export default function ConsoleTopbar({ onMenuClick }: { onMenuClick?: () => voi
         <span className="font-console-display-header text-console-display-header uppercase tracking-wider text-console-primary">
           EOC
         </span>
-        <div className="flex items-center gap-sm border-l border-console-outline-variant/30 pl-md">
+        <div className="flex items-center gap-console-sm border-l border-console-outline-variant/30 pl-console-md">
           <span
             className="h-1.5 w-1.5 rounded-full"
             style={{
@@ -87,7 +87,7 @@ export default function ConsoleTopbar({ onMenuClick }: { onMenuClick?: () => voi
           {wsStatus}
         </span>
       </div>
-      <div className="flex items-center gap-sm">
+      <div className="flex items-center gap-console-sm">
         <button
           aria-label="notifications"
           className="flex items-center justify-center rounded-md p-unit text-console-on-surface-variant transition-colors hover:bg-console-surface-bright/50 active:scale-95"
@@ -111,7 +111,7 @@ export default function ConsoleTopbar({ onMenuClick }: { onMenuClick?: () => voi
             </div>
             <button
               onClick={logout}
-              className="cursor-pointer rounded-md border border-console-outline-variant/30 bg-white/5 px-sm py-unit font-console-body-sm text-console-body-sm text-console-on-surface hover:bg-white/15"
+              className="cursor-pointer rounded-md border border-console-outline-variant/30 bg-white/5 px-console-sm py-unit font-console-body-sm text-console-body-sm text-console-on-surface hover:bg-white/15"
             >
               Log out
             </button>

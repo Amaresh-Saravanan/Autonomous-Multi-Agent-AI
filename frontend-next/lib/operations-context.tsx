@@ -14,6 +14,7 @@ import {
   API_BASE,
   fetchCitizenReports,
   fetchIncidentState,
+  fetchRecommendations,
   fetchResources,
   fetchSeverityGeojson,
 } from "./api";
@@ -86,6 +87,10 @@ export function OperationsDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) return;
     fetchResources(token).then(setResources).catch(console.error);
+    // Load recommendations already pending before this page loaded — the WS
+    // below only pushes *new* ones, so without this a mid-incident refresh
+    // shows an empty panel until the next live event arrives.
+    fetchRecommendations(token).then(ingestRecommendations).catch(console.error);
     refreshCitizenReports().catch(console.error);
     const citizenPoll = setInterval(() => {
       refreshCitizenReports().catch(console.error);

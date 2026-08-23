@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -92,10 +92,10 @@ export default function Dashboard() {
       <button
         onClick={() => setEditMode((v) => !v)}
         aria-pressed={editMode}
-        className={`glass-panel absolute top-3 right-3 z-40 cursor-pointer rounded border px-1.5 py-0.5 text-xs ${
+        className={`absolute top-3 right-3 z-40 flex cursor-pointer items-center gap-2 rounded-lg border px-console-md py-console-sm font-console-label-caps text-console-label-caps backdrop-blur-md transition-colors ${
           editMode
-            ? "border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--text-primary)]"
-            : "border-[var(--border)] bg-white/5 text-[var(--text-primary)] hover:bg-white/15"
+            ? "border-console-primary bg-console-primary/20 text-console-on-surface"
+            : "border-console-outline-variant/30 bg-console-surface-container/80 text-console-on-surface hover:bg-console-surface-bright/80"
         }`}
       >
         {editMode ? "Lock layout" : "Edit layout"}

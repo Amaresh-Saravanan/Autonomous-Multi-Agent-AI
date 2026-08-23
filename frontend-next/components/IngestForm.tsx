@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 import { ingestWaterLevel } from "@/lib/api";
@@ -20,7 +20,7 @@ export default function IngestForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="glass-panel absolute bottom-4 left-4 z-30 rounded-xl px-3 py-3 text-xs"
+      className="absolute bottom-4 left-4 z-30 flex items-center gap-console-sm rounded-xl border border-console-primary/30 bg-console-surface/90 px-console-md py-console-sm font-console-body-compact text-console-body-compact text-console-on-surface-variant shadow-2xl backdrop-blur-xl"
     >
       Simulate water-level reading:{" "}
       <input
@@ -28,11 +28,11 @@ export default function IngestForm({
         step="0.1"
         value={reading}
         onChange={(e) => setReading(e.target.value)}
-        className="mr-2 w-20 rounded border border-[var(--border)] bg-white/5 px-1 text-[var(--text-primary)]"
+        className="w-20 rounded-md border border-console-outline-variant/50 bg-white/5 px-2 py-1 font-console-data-tabular text-console-data-tabular text-console-on-surface focus:border-console-primary focus:outline-none"
       />
       <button
         type="submit"
-        className="cursor-pointer rounded border border-[var(--border)] bg-white/5 px-2 py-1 hover:bg-white/12"
+        className="cursor-pointer rounded-md bg-console-primary px-3 py-1 font-console-label-caps text-console-label-caps text-console-on-primary transition-colors hover:bg-console-primary-container"
       >
         Send critical spike
       </button>

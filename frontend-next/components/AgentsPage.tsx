@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -39,24 +39,24 @@ export default function AgentsPage() {
   const ingestLatency = metrics?.routes["/ingest/{source_type}"];
 
   return (
-    <div className="h-full overflow-y-auto p-lg">
-      <h1 className="mb-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
+    <div className="h-full overflow-y-auto p-console-lg">
+      <h1 className="mb-console-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
         Agents
       </h1>
       {ingestLatency && (
-        <div className="mb-lg font-console-data-tabular text-console-data-tabular text-console-on-surface-variant">
+        <div className="mb-console-lg font-console-data-tabular text-console-data-tabular text-console-on-surface-variant">
           Orchestration latency: avg {ingestLatency.avg_latency_ms.toFixed(0)}ms · p95{" "}
           {ingestLatency.p95_latency_ms.toFixed(0)}ms ({ingestLatency.count} runs)
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-md md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-console-md md:grid-cols-2 lg:grid-cols-4">
         {ALL_AGENTS.map((agentId) => {
           const rec = outputs.get(agentId);
           return (
             <div
               key={agentId}
-              className="rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-md shadow-lg backdrop-blur-xl"
+              className="rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-console-md shadow-lg backdrop-blur-xl"
             >
               <div className="flex items-center justify-between">
                 <span className="font-console-data-tabular text-console-data-tabular font-semibold text-console-primary">

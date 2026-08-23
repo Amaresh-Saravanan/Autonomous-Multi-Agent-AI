@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -61,22 +61,22 @@ export default function MapPage() {
       />
 
       {/* Left rail: layers + incident list */}
-      <div className="absolute top-md left-md z-20 flex w-64 max-w-[calc(100vw-2rem)] flex-col gap-md">
-        <div className="rounded-xl border border-console-outline-variant/40 bg-console-surface/85 p-md shadow-lg backdrop-blur-xl">
-          <h3 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
+      <div className="absolute top-console-md left-console-md z-20 flex w-64 max-w-[calc(100vw-2rem)] flex-col gap-console-md">
+        <div className="rounded-xl border border-console-outline-variant/40 bg-console-surface/85 p-console-md shadow-lg backdrop-blur-xl">
+          <h3 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
             Layers
           </h3>
           <LayersToggle value={layersVisible} onChange={setLayersVisible} />
         </div>
         <div className="flex max-h-[60vh] flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/85 shadow-lg backdrop-blur-xl">
-          <div className="border-b border-console-outline-variant/20 bg-console-surface-container-low/50 px-md py-sm">
+          <div className="border-b border-console-outline-variant/20 bg-console-surface-container-low/50 px-console-md py-console-sm">
             <h3 className="font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
               Incidents ({incidents.length})
             </h3>
           </div>
-          <div className="flex-1 overflow-y-auto p-sm">
+          <div className="flex-1 overflow-y-auto p-console-sm">
             {incidents.length === 0 && (
-              <div className="p-sm font-console-body-sm text-console-body-sm text-console-on-surface-variant">
+              <div className="p-console-sm font-console-body-sm text-console-body-sm text-console-on-surface-variant">
                 No incidents yet.
               </div>
             )}
@@ -84,7 +84,7 @@ export default function MapPage() {
               <button
                 key={inc.incident_id}
                 onClick={() => selectIncident(inc.incident_id)}
-                className={`mb-1 flex w-full flex-col items-start gap-0.5 rounded-md px-sm py-sm text-left transition-colors ${
+                className={`mb-1 flex w-full flex-col items-start gap-0.5 rounded-md px-console-sm py-console-sm text-left transition-colors ${
                   inc.incident_id === selectedId
                     ? "border-l-2 border-console-primary bg-console-primary/10"
                     : "hover:bg-console-surface-container/40"
@@ -104,8 +104,8 @@ export default function MapPage() {
 
       {/* Right sheet: selected incident detail */}
       {selected && (
-        <div className="absolute top-md right-md bottom-md z-20 flex w-80 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/85 shadow-lg backdrop-blur-xl">
-          <div className="flex items-center justify-between border-b border-console-outline-variant/20 bg-console-surface-container-low/50 px-md py-sm">
+        <div className="absolute top-console-md right-console-md bottom-console-md z-20 flex w-80 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/85 shadow-lg backdrop-blur-xl">
+          <div className="flex items-center justify-between border-b border-console-outline-variant/20 bg-console-surface-container-low/50 px-console-md py-console-sm">
             <h3 className="font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
               {selected.incident_id}
             </h3>
@@ -117,14 +117,14 @@ export default function MapPage() {
               ✕
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-md">
-            <div className="mb-md font-console-body-sm text-console-body-sm text-console-on-surface-variant">
+          <div className="flex-1 overflow-y-auto p-console-md">
+            <div className="mb-console-md font-console-body-sm text-console-body-sm text-console-on-surface-variant">
               {selected.district || "—"}{selected.state ? `, ${selected.state}` : ""} ·{" "}
               {selected.count} event{selected.count === 1 ? "" : "s"} · {relativeAge(selected.last_ts)}
             </div>
 
             {selectedState?.conflicts && selectedState.conflicts.length > 0 && (
-              <div className="mb-md rounded-md border border-[var(--sev-critical)] bg-[var(--sev-critical)]/10 px-sm py-sm">
+              <div className="mb-console-md rounded-md border border-[var(--sev-critical)] bg-[var(--sev-critical)]/10 px-console-sm py-console-sm">
                 <div className="font-console-label-caps text-[10px] font-bold tracking-wide text-[var(--sev-critical)]">
                   ⚠ {selectedState.conflicts.length} CONFLICT{selectedState.conflicts.length > 1 ? "S" : ""}
                 </div>
@@ -136,11 +136,11 @@ export default function MapPage() {
               </div>
             )}
 
-            <div className="flex flex-col gap-sm">
+            <div className="flex flex-col gap-console-sm">
               {agentEntries(selectedState).map(([agentId, rec]) => (
                 <div
                   key={agentId}
-                  className="rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-sm py-sm"
+                  className="rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-console-sm py-console-sm"
                 >
                   <div className="font-console-data-tabular text-console-data-tabular text-console-on-surface">
                     {agentId} · {rec.action}

@@ -19,7 +19,9 @@ export default function RecommendationsPanel({
 
   return (
     <div>
-      <div className="mb-3 text-xs text-[var(--text-muted)]">{wsStatus}</div>
+      <div className="mb-3 font-console-data-tabular text-console-data-tabular text-console-on-surface-variant">
+        {wsStatus}
+      </div>
       <AnimatePresence initial={false}>
         {sorted.map((rec, i) => (
           <RecCard key={rec.rec_id} rec={rec} index={i} onDecided={onDecided} />

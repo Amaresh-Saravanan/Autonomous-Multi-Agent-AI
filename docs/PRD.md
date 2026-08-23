@@ -94,7 +94,7 @@ and are coordinated by an **Orchestrator**.
 | DS-6 | Early-warning alert generation + push | P0 |
 | DS-7 | Every recommendation is explainable (why, from what data, confidence) | P0 |
 
-### 3.5 Dashboard (EOC)
+### 3.5 Operations Console & Public UX
 | ID | Requirement | Priority |
 |---|---|---|
 | UI-1 | Live map with layered overlays (severity, resources, routes, incidents) | P0 |
@@ -103,6 +103,18 @@ and are coordinated by an **Orchestrator**.
 | UI-4 | Citizen report inbox with verification status | P1 |
 | UI-5 | Multi-agency role-based views | P1 |
 | UI-6 | Citizen-facing chat interface (multilingual) | P1 |
+| UI-7 | Public landing page that explains the platform and routes users to login/signup | P1 |
+| UI-8 | Dedicated login/signup/recovery pages instead of an in-dashboard login overlay | P0 |
+| UI-9 | Authenticated operations-console shell with sidebar/topbar navigation | P0 |
+| UI-10 | Dedicated product-area pages for command, map, alerts, incidents, recommendations, resources, routes, medical, citizen reports, agents, audit, and settings | P0 |
+| UI-11 | Full operational map page separate from the command overview | P0 |
+| UI-12 | Incident detail command room at `/incidents/[id]` with incident-scoped map, summaries, recommendations, routes, resources, citizen reports, and decision timeline | P0 |
+
+The command overview (`/command`) is a cockpit, not the whole workspace. It should
+surface only the live map preview, critical alerts, AG-8 situation summary, and
+resource-health snapshot. Full triage, approval, route planning, medical,
+resource, citizen-report, agent-status, and audit workflows belong on dedicated
+product-area pages so the main command view remains calm under load.
 
 ### 3.6 Security & Collaboration
 | ID | Requirement | Priority |

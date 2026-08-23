@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
@@ -62,7 +62,7 @@ export default function RecCard({
       animate={{ opacity: 1, y: 0 }}
       exit={reduce ? { opacity: 0 } : { opacity: 0, x: 40 }}
       transition={{ duration: 0.2, ease: "easeOut", delay: reduce ? 0 : index * 0.04 }}
-      className={`mb-sm rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-md py-sm ${
+      className={`mb-console-sm rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-console-md py-console-sm ${
         cls === "critical" ? "pulse-glow" : ""
       }`}
       style={{ borderLeft: `4px solid ${BORDER_COLOR[cls]}` }}
@@ -85,7 +85,7 @@ export default function RecCard({
         confidence {rec.confidence.toFixed(2)} · {rec.status}
       </div>
       {rec.status === "pending" && canDecide && (
-        <div className="mt-sm flex gap-2">
+        <div className="mt-console-sm flex gap-2">
           <button
             onClick={() => decide("approve")}
             className="flex-1 cursor-pointer rounded border border-console-primary/30 bg-console-primary/10 py-1 font-console-label-caps text-[10px] text-console-primary transition-colors hover:bg-console-primary/20"
@@ -101,7 +101,7 @@ export default function RecCard({
         </div>
       )}
       {rec.status === "pending" && !canDecide && (
-        <div className="mt-sm font-console-label-caps text-[9px] uppercase text-console-outline">
+        <div className="mt-console-sm font-console-label-caps text-[9px] uppercase text-console-outline">
           View only — operator approval required
         </div>
       )}

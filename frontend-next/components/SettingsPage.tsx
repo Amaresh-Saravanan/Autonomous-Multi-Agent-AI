@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useAuth } from "@/lib/auth-context";
 import ThemeToggle from "./ThemeToggle";
@@ -22,16 +22,16 @@ export default function SettingsPage() {
   if (!user) return null;
 
   return (
-    <div className="h-full overflow-y-auto p-lg">
-      <h1 className="mb-lg font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
+    <div className="h-full overflow-y-auto p-console-lg">
+      <h1 className="mb-console-lg font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
         Settings
       </h1>
 
-      <div className="max-w-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-md shadow-lg backdrop-blur-xl">
-        <h2 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
+      <div className="max-w-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-console-md shadow-lg backdrop-blur-xl">
+        <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
           Profile
         </h2>
-        <div className="flex flex-col gap-sm font-console-body-compact text-console-body-compact">
+        <div className="flex flex-col gap-console-sm font-console-body-compact text-console-body-compact">
           <div className="flex justify-between">
             <span className="text-console-on-surface-variant">Username</span>
             <span className="font-console-data-tabular text-console-data-tabular text-console-on-surface">
@@ -53,8 +53,8 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="mt-lg max-w-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-md shadow-lg backdrop-blur-xl">
-        <h2 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
+      <div className="mt-console-lg max-w-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-console-md shadow-lg backdrop-blur-xl">
+        <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
           Preferences
         </h2>
         <div className="flex items-center justify-between">
@@ -63,23 +63,23 @@ export default function SettingsPage() {
           </span>
           <ThemeToggle />
         </div>
-        <div className="mt-md flex items-center justify-between">
+        <div className="mt-console-md flex items-center justify-between">
           <span className="font-console-body-compact text-console-body-compact text-console-on-surface-variant">
             Command dashboard layout
           </span>
           <button
             onClick={resetLayout}
-            className="rounded-md border border-console-outline-variant/30 bg-console-surface-container/80 px-md py-sm font-console-label-caps text-console-label-caps text-console-on-surface hover:bg-console-surface-bright/80"
+            className="rounded-md border border-console-outline-variant/30 bg-console-surface-container/80 px-console-md py-console-sm font-console-label-caps text-console-label-caps text-console-on-surface hover:bg-console-surface-bright/80"
           >
             Reset to default
           </button>
         </div>
       </div>
 
-      <div className="mt-lg max-w-lg">
+      <div className="mt-console-lg max-w-lg">
         <button
           onClick={logout}
-          className="rounded-md border border-[var(--sev-critical)]/40 bg-[var(--sev-critical)]/10 px-md py-sm font-console-label-caps text-console-label-caps text-[var(--sev-critical)] hover:bg-[var(--sev-critical)]/20"
+          className="rounded-md border border-[var(--sev-critical)]/40 bg-[var(--sev-critical)]/10 px-console-md py-console-sm font-console-label-caps text-console-label-caps text-[var(--sev-critical)] hover:bg-[var(--sev-critical)]/20"
         >
           Log out
         </button>

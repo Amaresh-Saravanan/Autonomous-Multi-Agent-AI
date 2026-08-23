@@ -143,11 +143,11 @@
   --text-console-label-caps--letter-spacing: 0.08em;
 
   --spacing-unit: 4px;
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 16px;
-  --spacing-xl: 24px;
+  --spacing-console-xs: 4px;
+  --spacing-console-sm: 8px;
+  --spacing-console-md: 12px;
+  --spacing-console-lg: 16px;
+  --spacing-console-xl: 24px;
   --spacing-gutter: 8px;
   --spacing-container-margin: 16px;
 }

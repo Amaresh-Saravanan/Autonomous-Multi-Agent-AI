@@ -1,5 +1,5 @@
 # UX Design Specification
-## Autonomous Multi-Agent AI Platform — EOC Dashboard
+## Autonomous Multi-Agent AI Platform — Operations Console
 
 **Version:** 1.0
 **Date:** 2026-07-24
@@ -87,39 +87,209 @@ every surface (map heat, alert dot, card border-left). Consistency beats theming
 
 ---
 
-## 3. Layout (with resizable / draggable regions)
+## 3. Information Architecture
+
+The product is an **operations console**, not one overloaded dashboard. `/command`
+is the fast overview cockpit; deeper work moves into product-area pages so the
+map, alerts, recommendations, resources, medical coordination, routes, and audit
+workflows each have enough room.
+
+| Route | Access | Purpose |
+|---|---|---|
+| `/` | Public | Landing page that explains the platform and routes users to auth. |
+| `/login` | Public | Dedicated login page. |
+| `/signup` | Public | Request-access / agency signup page. |
+| `/forgot-password` | Public | Recovery placeholder UI. |
+| `/command` | Authenticated | Operational overview: map preview, critical alerts, AG-8 summary, resource health. |
+| `/map` | Authenticated | Full operational map with severity, routes, resources, incidents, and layers. |
+| `/alerts` | Operator+ | Alert triage queue and selected-alert detail. |
+| `/incidents` | Viewer+ | Active and historical incident list. |
+| `/incidents/[id]` | Viewer+ | Single-incident command room. |
+| `/recommendations` | Operator+ | Human approval/rejection workspace for agent recommendations. |
+| `/resources` | Viewer+ | Hospitals, shelters, teams, ambulances, and capacity status. |
+| `/routes` | Viewer+ | Evacuation and response route planning. |
+| `/medical` | Operator+ | Hospital capacity, casualty estimates, and ambulance dispatch. |
+| `/citizens` | Operator+ | Citizen report verification and trust review. |
+| `/agents` | Operator+ | AG-1 through AG-8 activity, latest outputs, and degradation state. |
+| `/audit` | Admin / liaison | Decision and recommendation audit trail. |
+| `/settings` | Authenticated | Profile, theme, session, and layout preferences. |
+| `/citizen` | Public | Citizen-facing assistance, safety guidance, and report intake. |
+
+### 3.1 Public Pages
+
+**Landing page (`/`)**
+- Hero: mission-critical tagline, map/radar visual, `Enter Command Center` and
+  `Request Access` CTAs.
+- Feature bands: multi-agent analysis, real-time map, explainable recommendations,
+  human approval gate, auditability.
+- How it works: ingest data → normalize events → agent collaboration → human
+  approval → live response.
+- Trust section: evidence-first outputs, RBAC, audit log, graceful degradation.
+
+**Login (`/login`)**
+- Split-screen layout: mission visual on the left, form on the right.
+- Fields: username, password, remember-me checkbox, forgot-password link.
+- Successful login redirects by role to `/command` first; future role-specific
+  defaults can point medical users to `/medical` or field coordinators to `/routes`.
+
+**Signup (`/signup`)**
+- Treated as an agency access request, not consumer self-service.
+- Fields: full name, email, agency, role request, region/city, password.
+- If backend registration is absent, submit state clearly says requests are
+  reviewed by administrators.
+
+**Forgot password (`/forgot-password`)**
+- Email input and recovery instructions. UI-only until backend support exists.
+
+**Citizen assistance (`/citizen`)**
+- Mobile-first page for affected public users.
+- Includes language selector, safety guidance, citizen chat, report form, and
+  emergency contact information.
+
+### 3.2 Authenticated Console Shell
+
+All authenticated product pages share one shell.
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│ TOP BAR  region · 🔴3 crit 🟠5 high · clock · theme⏾ · agency 👤 │
-├──────────┬──────────────────────────────────────────┬───────────┤
-│ LEFT     │                                          │ RIGHT     │
-│ (dock)   │              LIVE MAP                     │ (dock)    │
-│ Filters  │        MapLibre · layered · animated      │ Alerts ▲  │
-│ Layers   │                                          │ Recs   ▲  │
-│ Legend   │                                          │           │
-├──────────┴──────────────────────────────────────────┴───────────┤
-│ SITUATION BAR — AG-8 rolling summary (auto-refresh, plain lang)   │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ Top bar: EOC Platform · live feed · incident · search · user │
+├──────────────┬──────────────────────────────────────────────┤
+│ Sidebar      │ Page content                                 │
+│ Command      │                                              │
+│ Map          │                                              │
+│ Alerts       │                                              │
+│ Incidents    │                                              │
+│ Recs         │                                              │
+│ Resources    │                                              │
+│ Routes       │                                              │
+│ Medical      │                                              │
+│ Citizens     │                                              │
+│ Agents       │                                              │
+│ Audit        │                                              │
+│ Settings     │                                              │
+└──────────────┴──────────────────────────────────────────────┘
 ```
 
-### 3.1 Drag-and-drop customization
-- **Library:** `react-grid-layout` (widget grid) — panels are draggable +
-  resizable tiles the operator can rearrange.
-- **Draggable widgets:** Alerts, Recommendations, Filters/Layers, Situation
-  summary, Resource status, Citizen-report inbox.
-- **The map is the pinned canvas** — it fills remaining space and is *not* a
-  draggable tile (it's the ground the widgets float over).
-- **Persistence:** layout saved per user (localStorage first; `users.ui_layout`
-  JSON column when RBAC lands). Each role ships a sensible default layout
-  (Medical Dispatcher, Rescue Coordinator, etc. — PRD UI-5).
-- **Edit mode:** a lock/unlock toggle. Locked = no accidental drags mid-incident
-  (critical — you don't want to move a panel while approving a rescue).
+- Desktop: persistent collapsible sidebar, fixed top bar, scrollable page content.
+- Mobile/tablet: hamburger drawer, sticky top bar, stacked cards, map panels become
+  bottom sheets.
+- Top bar owns global liveness: WebSocket state, critical/high counts, clock,
+  theme toggle, and current user.
+- Sidebar items are filtered by role. Hidden pages must also be route-guarded, not
+  just visually hidden.
+
+### 3.3 Authenticated Product Areas
+
+**Command (`/command`)**
+- The quick operational overview. It must not become the old congested dashboard.
+- Keep: map preview, top 3 critical alerts, AG-8 situation summary, resource health
+  mini-cards, layer status, live/reconnecting indicator.
+- Move full feeds and detail workflows to their own pages.
 
 ```
-┌ Edit Layout ⇆ ┐   drag handles appear, tiles get a dashed outline,
-└───────────────┘   grid snap guides fade in. Toggle off → guides fade out.
+┌─────────────────────────────────────────────────────────────┐
+│ Critical count · high count · live/reconnecting · clock      │
+├──────────────┬───────────────────────────────┬──────────────┤
+│ Sidebar      │ Map preview                   │ Critical     │
+│              │ severity/routes/resources     │ alerts       │
+│              │                               │ AG-8 summary │
+├──────────────┴───────────────────────────────┴──────────────┤
+│ Resource health · citizen report count · latest incident      │
+└─────────────────────────────────────────────────────────────┘
 ```
+
+**Map (`/map`)**
+- Full operational map with minimal chrome.
+- Left: layer/filter rail. Center: MapLibre canvas. Right/bottom sheet: selected
+  incident/resource/route details.
+- Map layers: severity heat, resources, routes, incident pins, blocked roads.
+
+**Alerts (`/alerts`)**
+- Full triage queue, not a small widget.
+- Left: severity/status/agent/time filters and alert list. Right: selected alert
+  detail with evidence, rationale, map location, and related recommendation.
+
+**Incidents (`/incidents`)**
+- Active and historical incidents list with severity, location, status, age, last
+  update, and assigned agencies.
+- Clicking an incident opens `/incidents/[id]`.
+
+**Incident command room (`/incidents/[id]`)**
+- Incident-scoped workspace.
+- Header: disaster type, severity, location, status, last update.
+- Main: incident map, AG-8 summary, agent outputs, recommendations, routes,
+  resources, citizen reports, and decision timeline.
+
+**Recommendations (`/recommendations`)**
+- Human approval gate.
+- Tabs: pending, approved, rejected.
+- Filters: agent, severity, confidence, incident, agency scope.
+- Every card shows action, evidence, rationale, confidence, status, and approve /
+  reject controls when allowed.
+
+**Resources (`/resources`)**
+- Capacity-first page for hospitals, shelters, teams, ambulances, and supplies.
+- Top: summary cards. Middle: category tabs/table. Side: selected resource detail
+  and AG-5/AG-4 allocation recommendations.
+
+**Routes (`/routes`)**
+- Route-planning page with a large map.
+- Shows evacuation paths, blocked roads, vehicle routes, AG-6 rationale, and route
+  status (`open`, `blocked`, `degraded`).
+
+**Medical (`/medical`)**
+- Medical dispatcher workspace.
+- Shows casualty estimates, hospital capacity, ambulance availability, dispatch
+  recommendations, and emergency supply gaps.
+
+**Citizens (`/citizens`)**
+- Citizen-report review workspace.
+- Filters: flagged only, high severity, low trust, recent.
+- Each report shows reporter id, message, claimed severity, trust score,
+  verification status, and location preview.
+
+**Agents (`/agents`)**
+- AI system status page.
+- Cards for AG-1 through AG-8: latest output, evidence count, confidence, last run,
+  degraded/error state, and blackboard contribution.
+
+**Audit (`/audit`)**
+- Admin/liaison page for accountability.
+- Table: actor, action, target recommendation/incident, before/after status,
+  timestamp, and rationale/evidence reference.
+
+**Settings (`/settings`)**
+- Profile, role/agency display, theme, session/logout, layout preferences, and
+  notification preferences.
+
+### 3.4 Role-Based Navigation
+
+| Page | Viewer | Operator | Admin |
+|---|---:|---:|---:|
+| Command | Yes | Yes | Yes |
+| Map | Yes | Yes | Yes |
+| Alerts | Limited/read | Yes | Yes |
+| Incidents | Yes | Yes | Yes |
+| Recommendations | Read | Approve/reject | Yes |
+| Resources | Yes | Yes | Yes |
+| Routes | Yes | Yes | Yes |
+| Medical | Read | Yes | Yes |
+| Citizens | Read | Yes | Yes |
+| Agents | No | Yes | Yes |
+| Audit | No | No | Yes |
+| Settings | Yes | Yes | Yes |
+
+### 3.5 Drag-and-Drop Customization
+
+`react-grid-layout` is no longer the page architecture. It is limited to optional
+overview customization on `/command` only.
+
+- Draggable widgets: critical alerts, AG-8 summary, resource health, recent citizen
+  reports, and mini recommendation queue.
+- The full feeds and deep workflows live in product-area routes.
+- Persistence remains localStorage-first; move to a server-side user layout store
+  only when user persistence exists.
+- Edit mode remains lock/unlock to prevent accidental drags during active response.
 
 ---
 

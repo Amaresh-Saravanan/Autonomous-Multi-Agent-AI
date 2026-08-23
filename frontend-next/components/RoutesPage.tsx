@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useOperationsData } from "@/lib/operations-context";
@@ -26,19 +26,19 @@ export default function RoutesPage() {
         layersVisible={layersVisible}
       />
 
-      <div className="absolute top-md right-md bottom-md z-20 flex w-80 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/85 shadow-lg backdrop-blur-xl">
-        <div className="border-b border-console-outline-variant/20 bg-console-surface-container-low/50 px-md py-sm">
+      <div className="absolute top-console-md right-console-md bottom-console-md z-20 flex w-80 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/85 shadow-lg backdrop-blur-xl">
+        <div className="border-b border-console-outline-variant/20 bg-console-surface-container-low/50 px-console-md py-console-sm">
           <h3 className="font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
             Routes ({routeRecs.length})
           </h3>
         </div>
-        <div className="flex-1 overflow-y-auto p-sm">
+        <div className="flex-1 overflow-y-auto p-console-sm">
           {routeRecs.map((r) => {
             const blocked = !!r.details?.blocked;
             return (
               <div
                 key={r.rec_id}
-                className="mb-sm rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-sm py-sm"
+                className="mb-console-sm rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-console-sm py-console-sm"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-console-data-tabular text-console-data-tabular text-console-on-surface">
@@ -59,7 +59,7 @@ export default function RoutesPage() {
             );
           })}
           {routeRecs.length === 0 && (
-            <div className="p-sm font-console-body-sm text-console-body-sm text-console-on-surface-variant">
+            <div className="p-console-sm font-console-body-sm text-console-body-sm text-console-on-surface-variant">
               No active routes.
             </div>
           )}

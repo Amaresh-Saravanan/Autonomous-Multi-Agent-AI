@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import type { ResourceCategory, ResourceItem, ResourcesResponse } from "@/lib/types";
 
@@ -23,19 +23,28 @@ const CATEGORIES: ResourceCategory[] = ["hospitals", "shelters", "teams", "ambul
 
 export default function ResourcesPanel({ resources }: { resources: ResourcesResponse | null }) {
   if (!resources) {
-    return <div className="text-xs text-[var(--text-muted)]">Loading…</div>;
+    return (
+      <div className="font-console-body-sm text-console-body-sm text-console-on-surface-variant">
+        Loading…
+      </div>
+    );
   }
   return (
-    <div className="flex flex-col gap-2.5 text-xs">
+    <div className="flex flex-col gap-console-md">
       {CATEGORIES.map((cat) => (
         <div key={cat}>
-          <div className="font-semibold text-[var(--text-primary)]">
+          <div className="font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
             {LABELS[cat]} ({resources[cat].length})
           </div>
           {resources[cat].map((item) => (
-            <div key={item.id} className="flex justify-between text-[var(--text-muted)]">
-              <span>{String(item.name ?? item.id)}</span>
-              <span>{statusLine(cat, item)}</span>
+            <div
+              key={item.id}
+              className="flex justify-between gap-2 font-console-body-sm text-console-body-sm text-console-on-surface-variant"
+            >
+              <span className="truncate">{String(item.name ?? item.id)}</span>
+              <span className="shrink-0 font-console-data-tabular text-console-data-tabular text-console-on-surface">
+                {statusLine(cat, item)}
+              </span>
             </div>
           ))}
         </div>

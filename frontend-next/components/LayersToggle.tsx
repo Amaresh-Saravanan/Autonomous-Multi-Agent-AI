@@ -17,17 +17,32 @@ export default function LayersToggle({
     onChange({ ...value, [key]: e.target.checked });
 
   return (
-    <div className="flex flex-col gap-1.5 pt-1 text-xs">
-      <label className="flex cursor-pointer items-center gap-1.5">
-        <input type="checkbox" checked={value.severity} onChange={toggle("severity")} />
+    <div className="flex flex-col gap-2 pt-1">
+      <label className="flex cursor-pointer items-center gap-2 font-console-body-compact text-console-body-compact text-console-on-surface-variant hover:text-console-on-surface">
+        <input
+          type="checkbox"
+          checked={value.severity}
+          onChange={toggle("severity")}
+          className="accent-console-primary"
+        />
         Severity heat layer
       </label>
-      <label className="flex cursor-pointer items-center gap-1.5">
-        <input type="checkbox" checked={value.routes} onChange={toggle("routes")} />
+      <label className="flex cursor-pointer items-center gap-2 font-console-body-compact text-console-body-compact text-console-on-surface-variant hover:text-console-on-surface">
+        <input
+          type="checkbox"
+          checked={value.routes}
+          onChange={toggle("routes")}
+          className="accent-console-primary"
+        />
         Routes
       </label>
-      <label className="flex cursor-pointer items-center gap-1.5">
-        <input type="checkbox" checked={value.resources} onChange={toggle("resources")} />
+      <label className="flex cursor-pointer items-center gap-2 font-console-body-compact text-console-body-compact text-console-on-surface-variant hover:text-console-on-surface">
+        <input
+          type="checkbox"
+          checked={value.resources}
+          onChange={toggle("resources")}
+          className="accent-console-primary"
+        />
         Resources
       </label>
     </div>

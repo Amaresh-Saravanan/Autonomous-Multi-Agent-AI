@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useOperationsData } from "@/lib/operations-context";
@@ -57,17 +57,17 @@ export default function ResourcesPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-lg">
-      <h1 className="mb-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
+    <div className="h-full overflow-y-auto p-console-lg">
+      <h1 className="mb-console-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
         Resources
       </h1>
 
       {/* Summary cards */}
-      <div className="mb-lg grid grid-cols-2 gap-md md:grid-cols-4">
+      <div className="mb-console-lg grid grid-cols-2 gap-console-md md:grid-cols-4">
         {CATEGORIES.map((cat) => (
           <div
             key={cat}
-            className="rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-md shadow-lg backdrop-blur-xl"
+            className="rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-console-md shadow-lg backdrop-blur-xl"
           >
             <div className="font-console-label-caps text-[10px] uppercase text-console-on-surface-variant">
               {LABELS[cat]}
@@ -80,11 +80,11 @@ export default function ResourcesPage() {
       </div>
 
       {resources.supplies && (
-        <div className="mb-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-md shadow-lg backdrop-blur-xl">
-          <h2 className="mb-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
+        <div className="mb-console-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-console-md shadow-lg backdrop-blur-xl">
+          <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
             Supplies
           </h2>
-          <div className="flex gap-lg">
+          <div className="flex gap-console-lg">
             {Object.entries(resources.supplies).map(([key, value]) => (
               <div key={key}>
                 <div className="font-console-label-caps text-[10px] uppercase text-console-on-surface-variant">
@@ -100,12 +100,12 @@ export default function ResourcesPage() {
       )}
 
       {/* Category tabs */}
-      <div className="mb-md flex gap-1">
+      <div className="mb-console-md flex gap-1">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`rounded-md px-md py-sm font-console-label-caps text-console-label-caps uppercase transition-colors ${
+            className={`rounded-md px-console-md py-console-sm font-console-label-caps text-console-label-caps uppercase transition-colors ${
               activeCategory === cat
                 ? "bg-console-primary/20 text-console-primary"
                 : "text-console-on-surface-variant hover:bg-console-surface-container/40"
@@ -120,10 +120,10 @@ export default function ResourcesPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-console-outline-variant/20 bg-console-surface-container-low/50">
-              <th className="px-md py-sm text-left font-console-label-caps text-console-label-caps uppercase text-console-on-surface-variant">
+              <th className="px-console-md py-console-sm text-left font-console-label-caps text-console-label-caps uppercase text-console-on-surface-variant">
                 Name
               </th>
-              <th className="px-md py-sm text-left font-console-label-caps text-console-label-caps uppercase text-console-on-surface-variant">
+              <th className="px-console-md py-console-sm text-left font-console-label-caps text-console-label-caps uppercase text-console-on-surface-variant">
                 Status
               </th>
             </tr>
@@ -139,11 +139,11 @@ export default function ResourcesPage() {
                     lowCapacity ? "bg-[var(--sev-critical)]/10" : ""
                   }`}
                 >
-                  <td className="px-md py-sm font-console-body-compact text-console-body-compact text-console-on-surface">
+                  <td className="px-console-md py-console-sm font-console-body-compact text-console-body-compact text-console-on-surface">
                     {String(item.name ?? item.id)}
                   </td>
                   <td
-                    className={`px-md py-sm font-console-data-tabular text-console-data-tabular ${
+                    className={`px-console-md py-console-sm font-console-data-tabular text-console-data-tabular ${
                       lowCapacity ? "font-bold text-[var(--sev-critical)]" : "text-console-on-surface-variant"
                     }`}
                   >

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
@@ -42,18 +42,18 @@ export default function AlertsPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-lg">
-      <h1 className="mb-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
+    <div className="h-full overflow-y-auto p-console-lg">
+      <h1 className="mb-console-md font-console-display-header text-console-display-header uppercase tracking-wider text-console-on-surface">
         Alerts ({filtered.length})
       </h1>
 
-      <div className="mb-md flex flex-wrap items-center gap-md">
+      <div className="mb-console-md flex flex-wrap items-center gap-console-md">
         <div className="flex gap-1">
           {(["all", "critical", "high"] as const).map((s) => (
             <button
               key={s}
               onClick={() => setSeverityFilter(s)}
-              className={`rounded-md px-md py-sm font-console-label-caps text-console-label-caps uppercase transition-colors ${
+              className={`rounded-md px-console-md py-console-sm font-console-label-caps text-console-label-caps uppercase transition-colors ${
                 severityFilter === s
                   ? "bg-console-primary/20 text-console-primary"
                   : "text-console-on-surface-variant hover:bg-console-surface-container/40"
@@ -66,7 +66,7 @@ export default function AlertsPage() {
         <select
           value={agentFilter}
           onChange={(e) => setAgentFilter(e.target.value)}
-          className="rounded-md border border-console-outline-variant/40 bg-console-surface-container/60 px-sm py-sm font-console-body-sm text-console-body-sm text-console-on-surface"
+          className="rounded-md border border-console-outline-variant/40 bg-console-surface-container/60 px-console-sm py-console-sm font-console-body-sm text-console-body-sm text-console-on-surface"
         >
           <option value="all">All agents</option>
           {agentIds.map((id) => (
@@ -79,7 +79,7 @@ export default function AlertsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search action or rationale…"
-          className="rounded-md border border-console-outline-variant/40 bg-console-surface-container/60 px-sm py-sm font-console-body-sm text-console-body-sm text-console-on-surface placeholder:text-console-outline focus:border-console-primary focus:outline-none"
+          className="rounded-md border border-console-outline-variant/40 bg-console-surface-container/60 px-console-sm py-console-sm font-console-body-sm text-console-body-sm text-console-on-surface placeholder:text-console-outline focus:border-console-primary focus:outline-none"
         />
       </div>
 
