@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EOC Command Console</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary": "#ffb786",
+                      "surface-tint": "#adc6ff",
+                      "on-error": "#690005",
+                      "secondary": "#c2c6d3",
+                      "on-primary-fixed": "#001a42",
+                      "on-surface-variant": "#c2c6d6",
+                      "on-tertiary-fixed": "#311400",
+                      "background": "#10131a",
+                      "on-tertiary-fixed-variant": "#723600",
+                      "outline": "#8c909f",
+                      "error-container": "#93000a",
+                      "secondary-fixed": "#dee2ef",
+                      "tertiary-container": "#df7412",
+                      "secondary-fixed-dim": "#c2c6d3",
+                      "surface-container-lowest": "#0b0e15",
+                      "inverse-surface": "#e1e2ec",
+                      "surface": "#10131a",
+                      "on-tertiary-container": "#461f00",
+                      "surface-container-low": "#191b23",
+                      "primary-fixed-dim": "#adc6ff",
+                      "surface-container": "#1d2027",
+                      "on-primary-fixed-variant": "#004395",
+                      "surface-bright": "#363941",
+                      "primary": "#adc6ff",
+                      "on-secondary": "#2c313a",
+                      "on-error-container": "#ffdad6",
+                      "surface-container-high": "#272a31",
+                      "outline-variant": "#424754",
+                      "tertiary-fixed-dim": "#ffb786",
+                      "primary-fixed": "#d8e2ff",
+                      "primary-container": "#4d8eff",
+                      "surface-container-highest": "#32353c",
+                      "surface-variant": "#32353c",
+                      "error": "#ffb4ab",
+                      "surface-dim": "#10131a",
+                      "inverse-primary": "#005ac2",
+                      "inverse-on-surface": "#2e3038",
+                      "on-background": "#e1e2ec",
+                      "on-secondary-fixed-variant": "#424751",
+                      "on-primary-container": "#00285d",
+                      "on-tertiary": "#502400",
+                      "on-surface": "#e1e2ec",
+                      "secondary-container": "#474b56",
+                      "on-primary": "#002e6a",
+                      "on-secondary-fixed": "#171c25",
+                      "on-secondary-container": "#b7bcc8",
+                      "tertiary-fixed": "#ffdcc6"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "lg": "16px",
+                      "unit": "4px",
+                      "container-margin": "16px",
+                      "xl": "24px",
+                      "md": "12px",
+                      "xs": "4px",
+                      "gutter": "8px"
+              },
+              "fontFamily": {
+                      "display-header": [
+                              "Geist"
+                      ],
+                      "body-sm": [
+                              "Geist"
+                      ],
+                      "data-metric-lg": [
+                              "JetBrains Mono"
+                      ],
+                      "data-tabular": [
+                              "JetBrains Mono"
+                      ],
+                      "body-compact": [
+                              "Geist"
+                      ],
+                      "label-caps": [
+                              "Geist"
+                      ]
+              },
+              "fontSize": {
+                      "display-header": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "data-metric-lg": [
+                              "20px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "data-tabular": [
+                              "13px",
+                              {
+                                      "lineHeight": "18px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-compact": [
+                              "13px",
+                              {
+                                      "lineHeight": "18px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "letterSpacing": "0.08em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .pulse-glow {
+            animation: pulseGlow 2s infinite alternate;
+        }
+        @keyframes pulseGlow {
+            from { box-shadow: 0 0 10px rgba(255, 180, 171, 0.1); border-left-color: rgba(255, 180, 171, 0.5); }
+            to { box-shadow: 0 0 20px rgba(255, 180, 171, 0.3); border-left-color: rgba(255, 180, 171, 1); }
+        }
+        .live-dot {
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(140, 144, 159, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(140, 144, 159, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-compact overflow-hidden antialiased selection:bg-primary/30">
+<!-- TopNavBar -->
+<nav class="bg-surface/80 backdrop-blur-xl docked full-width top-0 h-10 border-b border-outline-variant/30 flex justify-between items-center px-lg w-full fixed top-0 z-[100]">
+<div class="flex items-center gap-4">
+<span class="font-display-header text-display-header font-bold text-primary tracking-wider">EOC</span>
+<div class="flex items-center gap-2 border-l border-outline-variant/30 pl-4">
+<span class="h-2 w-2 rounded-full bg-green-500 live-dot"></span>
+<span class="font-data-tabular text-data-tabular text-on-surface-variant" id="sys-clock">00:00:00</span>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex gap-4">
+<button aria-label="notifications" class="text-on-surface-variant hover:text-on-surface hover:bg-surface-bright/50 transition-colors p-1 rounded-full flex items-center justify-center cursor-pointer active:scale-95">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button aria-label="wifi_tethering" class="text-on-surface-variant hover:text-on-surface hover:bg-surface-bright/50 transition-colors p-1 rounded-full flex items-center justify-center cursor-pointer active:scale-95">
+<span class="material-symbols-outlined text-[20px]">wifi_tethering</span>
+</button>
+<button aria-label="schedule" class="text-on-surface-variant hover:text-on-surface hover:bg-surface-bright/50 transition-colors p-1 rounded-full flex items-center justify-center cursor-pointer active:scale-95">
+<span class="material-symbols-outlined text-[20px]">schedule</span>
+</button>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/50">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a system administrator in a dark, high-tech command center. Subtle blue screen lighting illuminates the face. High contrast, sharp focus, 8k resolution, cinematic lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5BloG1CPaRZELGgFnZx8ri-_8pRFqwOhVk01CqD9XAwFto4Uao9hsgLQO_bYVMttRauyO_JwSCGjz7mmcPu208jVD97W69vg1YwfsIywbJVjWnXdQC6gpJCxbwtDNgeIM3oSOdyIRQ0A8rNNZ3emedQHuS7I4MZPqeva2hC8FgGgMJC_jhQG3cEdCqrU7Mh1TwQPGvsjMXaLyMXNP1-FiC9SzitnzZCTya0oQ2c5h7eUqP0gn3J-0vA"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="bg-surface/60 backdrop-blur-xl docked left-0 h-full w-[176px] border-r border-outline-variant/20 fixed left-0 top-10 bottom-0 flex flex-col z-[50]">
+<div class="p-lg border-b border-outline-variant/20 mb-sm">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg overflow-hidden border border-outline-variant/30 shrink-0">
+<img alt="System Administrator" class="w-full h-full object-cover" data-alt="A futuristic badge or insignia for a system administrator, glowing softly against a dark metallic background. Crisp details, vector-like aesthetic, professional and authoritative tone." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjL3NenYqER6QbNrYI8BtTM5JFPkNqLJ2R0PUaW2IM8mggmo4dLkBpNgMy8bvrSQeqKA0Q8FzAvdwHaZQ-WcNO37O1uagofv-05FLlRXynUaBokkmr9DpXo9bapSM6bauydG_wL1BlvY-mmL1q9vr-5Ph3KizRblCEwRSJI6YDMRBv79xJWpT6uM36edZP7bUtKEZM9GvoEW3m4kGIsUqN2gIVM3GGNi--4MPfLv3YekZoR6kMN_qz7g"/>
+</div>
+<div class="overflow-hidden">
+<h2 class="font-label-caps text-label-caps text-on-surface truncate">Command Console</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Active Ops</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto py-sm flex flex-col gap-1 px-sm">
+<a class="flex items-center gap-3 px-md py-sm rounded-lg bg-primary/10 text-primary border-l-2 border-primary transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">dashboard</span>
+<span class="font-label-caps text-label-caps">Command</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">map</span>
+<span class="font-label-caps text-label-caps">Map</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">warning</span>
+<span class="font-label-caps text-label-caps">Alerts</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">emergency</span>
+<span class="font-label-caps text-label-caps">Incidents</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">recommend</span>
+<span class="font-label-caps text-label-caps">Recommendations</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">inventory_2</span>
+<span class="font-label-caps text-label-caps">Resources</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">route</span>
+<span class="font-label-caps text-label-caps">Routes</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">medical_services</span>
+<span class="font-label-caps text-label-caps">Medical</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">groups</span>
+<span class="font-label-caps text-label-caps">Citizens</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">smart_toy</span>
+<span class="font-label-caps text-label-caps">Agents</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">history</span>
+<span class="font-label-caps text-label-caps">Audit</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[176px] mt-[40px] h-[calc(100vh-40px)] relative bg-surface-container-lowest z-0">
+<!-- Vector Map Background (Simulated via placeholder image) -->
+<div class="absolute inset-0 z-0 w-full h-full opacity-60">
+<div class="bg-cover bg-center w-full h-full" data-alt="A dark, high-resolution vector map of a metropolitan area. Futuristic interface style, neon blue and subtle grid lines on a deep black/navy background. Glowing nodes representing data points, highly detailed, cinematic tech aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCpTlF25EeT7VziF2uqWGhtHprm71UL_0zRpub0NfAyiv8lOcSXVfSBaTv16s9A5inVMmAm0gByJaORydhtaWz2DExdcvYDkBB03jCL0nvjM1yQa1ti1DxRtr1N8RTBtiDOEnPtXS9PbiPfZqbhWMwkux29y4djAq-EMVjtw2kpW65uVbdjJey43gv1rVgjm-2wVBFKzqEakvnr2L5h8NpzVe6VgVTaDZLDlB4mrLenVyCLSGwMqrcidw')"></div>
+<!-- Gradient overlay for better text contrast -->
+<div class="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/30 pointer-events-none"></div>
+</div>
+<!-- Top Right Actions -->
+<div class="absolute top-md right-lg z-20">
+<button class="bg-surface-container/80 backdrop-blur-md border border-outline-variant/30 rounded-lg px-md py-sm flex items-center gap-2 hover:bg-surface-bright/80 transition-colors text-on-surface">
+<span class="material-symbols-outlined text-[16px]">dashboard_customize</span>
+<span class="font-label-caps text-label-caps">Edit Layout</span>
+</button>
+</div>
+<!-- Floating Panels Grid Layout -->
+<div class="absolute inset-0 p-lg z-10 pointer-events-none overflow-hidden">
+<div class="grid grid-cols-12 grid-rows-12 gap-md h-full w-full">
+<!-- Situation Summary Panel (Col 1-4, Row 1-3) -->
+<div class="col-span-4 row-span-3 bg-[#141930]/85 backdrop-blur-xl rounded-xl border border-[#2a3142] p-md flex flex-col shadow-lg pointer-events-auto">
+<div class="flex items-center justify-between mb-sm border-b border-outline-variant/20 pb-sm">
+<h3 class="font-label-caps text-label-caps text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">summarize</span>
+                            Situation Summary
+                        </h3>
+<span class="bg-surface-variant text-on-surface-variant font-data-tabular text-[10px] px-2 py-0.5 rounded-full">AI Brief</span>
+</div>
+<div class="flex-1 overflow-y-auto">
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+<strong class="text-on-surface">Sector 4 Containment:</strong> Operations proceeding nominally. 
+                            Multiple rescue teams deployed to grid Alpha-7 following minor structural collapse. 
+                            Weather front approaching from NW expected to reduce aerial visibility by 14:00 hrs. 
+                            <span class="text-tertiary">Resource deficit identified in medical supply chain routing through node Gamma.</span> 
+                            Citizen reporting indicates moderate anxiety in outer perimeter zones.
+                        </p>
+</div>
+</div>
+<!-- Resource Status Panel (Col 5-8, Row 1-2) -->
+<div class="col-span-4 row-span-2 bg-[#141930]/85 backdrop-blur-xl rounded-xl border border-[#2a3142] p-md flex flex-col shadow-lg pointer-events-auto">
+<div class="flex items-center justify-between mb-sm">
+<h3 class="font-label-caps text-label-caps text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">bar_chart</span>
+                            Resource Status
+                        </h3>
+</div>
+<div class="grid grid-cols-4 gap-2 flex-1">
+<div class="bg-surface-container/50 rounded-lg p-2 flex flex-col justify-center items-center border border-outline-variant/10">
+<span class="material-symbols-outlined text-primary text-[18px] mb-1">local_hospital</span>
+<span class="font-data-tabular text-data-tabular text-on-surface">14/15</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-2 flex flex-col justify-center items-center border border-outline-variant/10">
+<span class="material-symbols-outlined text-tertiary-container text-[18px] mb-1">home_work</span>
+<span class="font-data-tabular text-data-tabular text-on-surface">08/12</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-2 flex flex-col justify-center items-center border border-outline-variant/10">
+<span class="material-symbols-outlined text-secondary text-[18px] mb-1">group</span>
+<span class="font-data-tabular text-data-tabular text-on-surface">42/50</span>
+</div>
+<div class="bg-surface-container/50 rounded-lg p-2 flex flex-col justify-center items-center border border-outline-variant/10">
+<span class="material-symbols-outlined text-error text-[18px] mb-1">ambulance</span>
+<span class="font-data-tabular text-data-tabular text-on-surface">03/20</span>
+</div>
+</div>
+</div>
+<!-- Layers Panel (Col 10-12, Row 3-6) -->
+<div class="col-span-3 col-start-10 row-span-4 bg-[#141930]/85 backdrop-blur-xl rounded-xl border border-[#2a3142] p-md flex flex-col shadow-lg pointer-events-auto">
+<div class="flex items-center justify-between mb-md border-b border-outline-variant/20 pb-sm">
+<h3 class="font-label-caps text-label-caps text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">layers</span>
+                            Layers
+                        </h3>
+</div>
+<div class="flex flex-col gap-3">
+<label class="flex items-center justify-between cursor-pointer group">
+<span class="font-body-compact text-body-compact text-on-surface-variant group-hover:text-on-surface transition-colors">Severity Overlay</span>
+<div class="relative inline-block w-8 h-4 rounded-full bg-primary/20 border border-primary/50">
+<div class="absolute w-3 h-3 bg-primary rounded-full top-[1px] right-[1px] transition-transform"></div>
+</div>
+</label>
+<label class="flex items-center justify-between cursor-pointer group">
+<span class="font-body-compact text-body-compact text-on-surface-variant group-hover:text-on-surface transition-colors">Active Routes</span>
+<div class="relative inline-block w-8 h-4 rounded-full bg-surface-container border border-outline-variant/50">
+<div class="absolute w-3 h-3 bg-on-surface-variant rounded-full top-[1px] left-[1px] transition-transform"></div>
+</div>
+</label>
+<label class="flex items-center justify-between cursor-pointer group">
+<span class="font-body-compact text-body-compact text-on-surface-variant group-hover:text-on-surface transition-colors">Resource Heatmap</span>
+<div class="relative inline-block w-8 h-4 rounded-full bg-primary/20 border border-primary/50">
+<div class="absolute w-3 h-3 bg-primary rounded-full top-[1px] right-[1px] transition-transform"></div>
+</div>
+</label>
+<label class="flex items-center justify-between cursor-pointer group">
+<span class="font-body-compact text-body-compact text-on-surface-variant group-hover:text-on-surface transition-colors">Weather Radar</span>
+<div class="relative inline-block w-8 h-4 rounded-full bg-surface-container border border-outline-variant/50">
+<div class="absolute w-3 h-3 bg-on-surface-variant rounded-full top-[1px] left-[1px] transition-transform"></div>
+</div>
+</label>
+</div>
+</div>
+<!-- Recommendations Panel (Col 1-4, Row 4-12) -->
+<div class="col-span-4 row-span-9 bg-[#141930]/85 backdrop-blur-xl rounded-xl border border-[#2a3142] flex flex-col shadow-lg pointer-events-auto overflow-hidden">
+<div class="p-md border-b border-outline-variant/20 bg-surface-container-low/50">
+<h3 class="font-label-caps text-label-caps text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">model_training</span>
+                            Recommendations
+                        </h3>
+</div>
+<div class="flex-1 overflow-y-auto p-md flex flex-col gap-sm">
+<!-- Recommendation Card: Critical -->
+<div class="bg-surface-container/60 rounded-lg p-sm border border-outline-variant/20 border-l-[4px] border-l-error pulse-glow">
+<div class="flex justify-between items-start mb-2">
+<span class="font-data-tabular text-data-tabular text-on-surface font-semibold tracking-wide">AG-3 · dispatch_rescue_team</span>
+<span class="flex items-center gap-1 font-label-caps text-[9px] text-error bg-error/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[12px]">warning</span>
+                                    CRITICAL
+                                </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-1">Imminent risk detected in sector 4 collapse zone. Dispatch immediate extraction unit.</p>
+<p class="font-data-tabular text-[10px] text-outline mb-3">confidence 0.98 · pending · 2m ago</p>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded py-1 font-label-caps text-[10px] transition-colors">APPROVE</button>
+<button class="flex-1 bg-surface hover:bg-surface-bright text-on-surface-variant border border-outline-variant/30 rounded py-1 font-label-caps text-[10px] transition-colors">REJECT</button>
+</div>
+</div>
+<!-- Recommendation Card: High -->
+<div class="bg-surface-container/60 rounded-lg p-sm border border-outline-variant/20 border-l-[4px] border-l-[#f97316]">
+<div class="flex justify-between items-start mb-2">
+<span class="font-data-tabular text-data-tabular text-on-surface font-semibold tracking-wide">AG-7 · reroute_supply_convoy</span>
+<span class="flex items-center gap-1 font-label-caps text-[9px] text-[#f97316] bg-[#f97316]/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[12px]">priority_high</span>
+                                    HIGH
+                                </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-1">Route Alpha obstructed by debris. Suggest rerouting logistics convoy via Beta corridor.</p>
+<p class="font-data-tabular text-[10px] text-outline mb-3">confidence 0.87 · pending · 12m ago</p>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded py-1 font-label-caps text-[10px] transition-colors">APPROVE</button>
+<button class="flex-1 bg-surface hover:bg-surface-bright text-on-surface-variant border border-outline-variant/30 rounded py-1 font-label-caps text-[10px] transition-colors">REJECT</button>
+</div>
+</div>
+<!-- Recommendation Card: Low -->
+<div class="bg-surface-container/60 rounded-lg p-sm border border-outline-variant/20 border-l-[4px] border-l-[#22c55e]">
+<div class="flex justify-between items-start mb-2">
+<span class="font-data-tabular text-data-tabular text-on-surface font-semibold tracking-wide">AG-2 · update_citizen_advisory</span>
+<span class="flex items-center gap-1 font-label-caps text-[9px] text-[#22c55e] bg-[#22c55e]/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[12px]">info</span>
+                                    LOW
+                                </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-1">Standard periodic update to citizen broadcast channels regarding weather shift.</p>
+<p class="font-data-tabular text-[10px] text-outline mb-3">confidence 0.99 · pending · 45m ago</p>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded py-1 font-label-caps text-[10px] transition-colors">APPROVE</button>
+<button class="flex-1 bg-surface hover:bg-surface-bright text-on-surface-variant border border-outline-variant/30 rounded py-1 font-label-caps text-[10px] transition-colors">REJECT</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Citizen Reports Panel (Col 10-12, Row 7-12) -->
+<div class="col-span-3 col-start-10 row-span-6 bg-[#141930]/85 backdrop-blur-xl rounded-xl border border-[#2a3142] flex flex-col shadow-lg pointer-events-auto overflow-hidden">
+<div class="p-md border-b border-outline-variant/20 bg-surface-container-low/50 flex justify-between items-center">
+<h3 class="font-label-caps text-label-caps text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">record_voice_over</span>
+                            Citizen Reports
+                        </h3>
+<span class="material-symbols-outlined text-on-surface-variant text-[16px] cursor-pointer hover:text-primary">filter_list</span>
+</div>
+<div class="flex-1 overflow-y-auto p-sm flex flex-col gap-2">
+<div class="bg-surface-container/40 p-2 rounded border border-outline-variant/10">
+<div class="flex justify-between items-center mb-1">
+<span class="font-data-tabular text-[11px] text-on-surface">LOC-882</span>
+<span class="text-[9px] font-label-caps px-1 py-0.5 rounded bg-tertiary-container/20 text-tertiary">UNVERIFIED</span>
+</div>
+<p class="font-body-sm text-[11px] text-on-surface-variant line-clamp-2">"Smell of gas near the old factory district. Multiple people gathering."</p>
+</div>
+<div class="bg-surface-container/40 p-2 rounded border border-outline-variant/10">
+<div class="flex justify-between items-center mb-1">
+<span class="font-data-tabular text-[11px] text-on-surface">LOC-901</span>
+<span class="text-[9px] font-label-caps px-1 py-0.5 rounded bg-primary/20 text-primary">VERIFIED 85%</span>
+</div>
+<p class="font-body-sm text-[11px] text-on-surface-variant line-clamp-2">"Road blocked by fallen tree on Main St, preventing ambulance access."</p>
+</div>
+<div class="bg-surface-container/40 p-2 rounded border border-outline-variant/10">
+<div class="flex justify-between items-center mb-1">
+<span class="font-data-tabular text-[11px] text-on-surface">LOC-745</span>
+<span class="text-[9px] font-label-caps px-1 py-0.5 rounded bg-primary/20 text-primary">VERIFIED 92%</span>
+</div>
+<p class="font-body-sm text-[11px] text-on-surface-variant line-clamp-2">"Power out completely in north sector. Backup generators failing."</p>
+</div>
+</div>
+</div>
+<!-- Bottom Floating Ingest Form (Centered Bottom) -->
+<div class="col-span-4 col-start-5 row-start-12 row-span-1 self-end bg-[#141930]/90 backdrop-blur-2xl rounded-lg border border-primary/30 p-2 shadow-2xl pointer-events-auto flex items-center gap-2 mb-md">
+<span class="material-symbols-outlined text-primary ml-2">add_circle</span>
+<input class="bg-transparent border-none text-on-surface font-body-compact text-body-compact focus:ring-0 w-full placeholder:text-outline-variant" placeholder="Quick ingest command or report..." type="text"/>
+<button class="bg-primary text-on-primary-fixed rounded px-3 py-1 font-label-caps text-label-caps hover:bg-primary-fixed transition-colors whitespace-nowrap">SUBMIT</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Simple clock update
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+            document.getElementById('sys-clock').textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body></html>
