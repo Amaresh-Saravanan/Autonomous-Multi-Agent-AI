@@ -9,13 +9,27 @@
   --color-muted-foreground: var(--landing-muted-foreground);
 }
 
+/* Landing unified into the dark command-center brand (matches the console
+   base/surface + on-surface tokens). Sections are theme-driven — they read
+   background/foreground/primary/muted-foreground, mapped to these vars via the
+   @theme inline block above — so flipping these three cascades the whole page
+   to dark. Instrument Serif headlines stay: an editorial front door, same
+   palette as the app it opens into. */
 .landing-page {
-  --landing-background: oklch(0.985 0.002 90);
-  --landing-foreground: oklch(0.12 0.01 60);
-  --landing-muted-foreground: oklch(0.45 0.02 60);
+  --landing-background: #0b0e14;
+  --landing-foreground: #e6eaf2;
+  --landing-muted-foreground: #8a93a6;
   background: var(--landing-background);
   color: var(--landing-foreground);
   font-family: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
+}
+
+/* Landing follows the theme toggle too, so light-mode users get a light front
+   door (values match the console light palette for one continuous brand). */
+:root[data-theme="light"] .landing-page {
+  --landing-background: #f5f7fa;
+  --landing-foreground: #1a2130;
+  --landing-muted-foreground: #5a6478;
 }
 
 .landing-page .font-mono {
@@ -152,6 +166,44 @@
   --spacing-container-margin: 16px;
 }
 
+/* Light theme for the canonical console palette. The @theme block above emits
+   these as --color-console-* custom properties on :root (dark by default);
+   utilities like bg-console-surface read them via var(), so overriding the
+   variables here under [data-theme="light"] re-colors the whole console in
+   light mode. High-contrast whites/grays per DESIGN.md, same family as the
+   severity/glass light values below. on-* pairings kept so text stays legible
+   on every filled surface. */
+:root[data-theme="light"] {
+  --color-console-surface: #ffffff;
+  --color-console-surface-dim: #f5f7fa;
+  --color-console-surface-bright: #ffffff;
+  --color-console-surface-container-lowest: #ffffff;
+  --color-console-surface-container-low: #f5f7fa;
+  --color-console-surface-container: #eef1f6;
+  --color-console-surface-container-high: #e4e9f1;
+  --color-console-surface-container-highest: #dce3ed;
+  --color-console-on-surface: #1a2130;
+  --color-console-on-surface-variant: #44506a;
+  --color-console-outline: #6b7488;
+  --color-console-outline-variant: #c4cbd8;
+  --color-console-primary: #2563eb;
+  --color-console-on-primary: #ffffff;
+  --color-console-primary-container: #d8e2ff;
+  --color-console-on-primary-container: #001a42;
+  --color-console-secondary: #4a5163;
+  --color-console-on-secondary: #ffffff;
+  --color-console-secondary-container: #dee2ef;
+  --color-console-tertiary: #b8500f;
+  --color-console-on-tertiary: #ffffff;
+  --color-console-tertiary-container: #ffdcc6;
+  --color-console-error: #ba1a1a;
+  --color-console-on-error: #ffffff;
+  --color-console-error-container: #ffdad6;
+  --color-console-on-error-container: #410002;
+  --color-console-background: #f5f7fa;
+  --color-console-on-background: #1a2130;
+}
+
 /* Critical recommendation cards — DESIGN.md "Components > Recommendation
    Cards": breathing glow at 10-30% opacity on the accent/error color, plus a
    left-border intensity shift. Not yet applied to any component (shell-only
@@ -174,15 +226,21 @@
 /* Design tokens — docs/UX_DESIGN.md §2.1. Dark is the default per the spec
    ("command centers run 24/7 in low light"); light is opt-in via
    [data-theme="light"] (ThemeToggle wires it up). */
+/* Semantic aliases. These older names (UX_DESIGN.md §2.1) are still used by a
+   handful of components; alias them to the canonical console-* tokens so the
+   two systems can't drift (same surface = same hex). Declared on plain :root so
+   they resolve against whichever theme is active — no light duplicates needed.
+   Severity + glass keep explicit per-theme values below: console has no
+   severity scale, and glass needs bespoke translucency. */
 :root,
 :root[data-theme="dark"] {
-  --bg-base: #0b0e14;
-  --bg-surface: #141922;
-  --bg-surface-2: #1c2230;
-  --border: #2a3142;
-  --text-primary: #e6eaf2;
-  --text-muted: #8a93a6;
-  --accent: #3b82f6;
+  --bg-base: var(--color-console-surface-container-lowest);
+  --bg-surface: var(--color-console-surface);
+  --bg-surface-2: var(--color-console-surface-container);
+  --border: var(--color-console-outline-variant);
+  --text-primary: var(--color-console-on-surface);
+  --text-muted: var(--color-console-on-surface-variant);
+  --accent: var(--color-console-primary);
 
   --sev-low: #22c55e;
   --sev-moderate: #eab308;
@@ -192,19 +250,11 @@
 
   --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.45);
   --glass-bg: rgba(20, 25, 48, 0.85);
-  --glass-blur: 6px;
+  --glass-blur: 12px;
   --glass-border: 1px solid rgba(42, 49, 66, 0.6);
 }
 
 :root[data-theme="light"] {
-  --bg-base: #f5f7fa;
-  --bg-surface: #ffffff;
-  --bg-surface-2: #eef1f6;
-  --border: #d6dce6;
-  --text-primary: #1a2130;
-  --text-muted: #5a6478;
-  --accent: #2563eb;
-
   --sev-low: #16a34a;
   --sev-moderate: #ca8a04;
   --sev-high: #ea580c;
@@ -213,7 +263,7 @@
 
   --shadow-panel: 0 6px 18px rgba(20, 33, 48, 0.12);
   --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-blur: 6px;
+  --glass-blur: 12px;
   --glass-border: 1px solid rgba(214, 220, 230, 0.8);
 }
 
@@ -257,12 +307,15 @@ body {
   border: 0;
 }
 
+/* Depth via translucency + edge treatment, not heavy shadows (DESIGN.md
+   "Elevation & Depth"): the 1px border defines the edge against the map/base,
+   and a faint inset top highlight reads as a lit glass edge. */
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   border: var(--glass-border);
   border-radius: 12px;
-  box-shadow: var(--shadow-panel);
+  box-shadow: var(--shadow-panel), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 @keyframes slideIn {

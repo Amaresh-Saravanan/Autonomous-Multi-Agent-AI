@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 
 type Theme = "dark" | "light";
 
@@ -34,9 +35,9 @@ export default function ThemeToggle() {
       onClick={toggle}
       aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
       title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-      className="flex cursor-pointer items-center justify-center rounded-md p-unit text-console-on-surface-variant transition-colors hover:bg-console-surface-bright/50 active:scale-95"
+      className="flex cursor-pointer items-center justify-center rounded-md p-1.5 text-console-on-surface-variant transition-colors hover:bg-console-surface-bright/50 hover:text-console-on-surface active:scale-95"
     >
-      {theme === "dark" ? "☾" : "☀"}
+      {theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
     </button>
   );
 }

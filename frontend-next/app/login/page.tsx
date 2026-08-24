@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // Dedicated login page (tracker 3.11.2) — split-screen per UX_DESIGN.md
 // §3.1, replaces the old in-dashboard LoginOverlay gate. Successful login
@@ -31,7 +32,10 @@ export default function LoginPage() {
   if (user) return null;
 
   return (
-    <div className="flex min-h-screen w-screen" style={{ background: "var(--bg-base)" }}>
+    <div className="relative flex min-h-screen w-screen" style={{ background: "var(--bg-base)" }}>
+      <div className="absolute right-4 top-4 z-20">
+        <ThemeToggle />
+      </div>
       {/* Mission visual — decorative only, no live map data on a public route */}
       <div className="relative hidden flex-1 items-center justify-center overflow-hidden border-r border-(--border) lg:flex">
         <div

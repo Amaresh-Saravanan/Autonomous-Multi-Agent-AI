@@ -44,7 +44,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col">
+      {/* Normal document flow so the public landing page scrolls at the
+          document level (its nav's scroll listener + sphere positioning depend
+          on window scroll). The console shell fills the viewport via its own
+          h-screen wrapper in (console)/layout.tsx, so it doesn't need the body
+          to be a flex column. */}
+      <body className="min-h-screen">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
