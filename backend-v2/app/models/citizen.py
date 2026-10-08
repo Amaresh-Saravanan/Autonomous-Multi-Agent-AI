@@ -5,7 +5,7 @@ import uuid
 from sqlalchemy import Float, ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TimestampMixin, UUIDPkMixin
+from app.models.base import Base, TimestampMixin, UUIDPkMixin, enum_column
 from app.models.incident import LocationStateEnum
 
 
@@ -17,7 +17,7 @@ class CitizenReport(Base, UUIDPkMixin, TimestampMixin):
     )
     reporter_contact: Mapped[str | None] = mapped_column(String(200), nullable=True)
     message: Mapped[str] = mapped_column(Text)
-    location_state: Mapped[LocationStateEnum] = mapped_column(String(20), default=LocationStateEnum.UNKNOWN)
+    location_state: Mapped[LocationStateEnum] = mapped_column(enum_column(LocationStateEnum), default=LocationStateEnum.UNKNOWN)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     verification_score: Mapped[float] = mapped_column(Float, default=0.0)

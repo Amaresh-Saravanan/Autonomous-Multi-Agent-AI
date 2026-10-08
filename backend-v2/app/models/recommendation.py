@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, Float, ForeignKey, Index, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TimestampMixin, UUIDPkMixin
+from app.models.base import Base, TimestampMixin, UUIDPkMixin, enum_column
 
 
 class RecommendationStatusEnum(str, enum.Enum):
@@ -38,7 +38,7 @@ class Recommendation(Base, UUIDPkMixin, TimestampMixin):
         Uuid(as_uuid=True), ForeignKey("agencies.id"), nullable=True
     )
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    status: Mapped[RecommendationStatusEnum] = mapped_column(String(20), default=RecommendationStatusEnum.PENDING)
+    status: Mapped[RecommendationStatusEnum] = mapped_column(enum_column(RecommendationStatusEnum), default=RecommendationStatusEnum.PENDING)
 
     # Human decision loop (Phase 18)
     decided_by_user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=True)

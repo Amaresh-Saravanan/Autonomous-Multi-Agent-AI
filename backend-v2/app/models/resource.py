@@ -7,7 +7,7 @@ import uuid
 from sqlalchemy import Float, ForeignKey, Index, Integer, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TimestampMixin, UUIDPkMixin
+from app.models.base import Base, TimestampMixin, UUIDPkMixin, enum_column
 
 
 class RescueTeamStatusEnum(str, enum.Enum):
@@ -46,7 +46,7 @@ class RescueTeam(Base, UUIDPkMixin, TimestampMixin):
     agency_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("agencies.id"), index=True)
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
-    status: Mapped[RescueTeamStatusEnum] = mapped_column(String(20), default=RescueTeamStatusEnum.AVAILABLE)
+    status: Mapped[RescueTeamStatusEnum] = mapped_column(enum_column(RescueTeamStatusEnum), default=RescueTeamStatusEnum.AVAILABLE)
 
 
 class Resource(Base, UUIDPkMixin, TimestampMixin):

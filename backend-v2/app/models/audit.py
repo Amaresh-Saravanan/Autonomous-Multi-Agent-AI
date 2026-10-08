@@ -8,7 +8,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey, Index, JSON, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, UUIDPkMixin
+from app.models.base import Base, UUIDPkMixin, enum_column
 
 
 class ActorTypeEnum(str, enum.Enum):
@@ -27,7 +27,7 @@ class AuditLog(Base, UUIDPkMixin):
     )
 
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    actor_type: Mapped[ActorTypeEnum] = mapped_column(String(20))
+    actor_type: Mapped[ActorTypeEnum] = mapped_column(enum_column(ActorTypeEnum))
     actor_id: Mapped[str] = mapped_column(String(100))
     agency_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), ForeignKey("agencies.id"), nullable=True)
     action: Mapped[str] = mapped_column(String(100))

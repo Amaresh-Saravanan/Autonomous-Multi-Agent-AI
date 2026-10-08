@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TimestampMixin, UUIDPkMixin
+from app.models.base import Base, TimestampMixin, UUIDPkMixin, enum_column
 
 
 class AgentStatusEnum(str, enum.Enum):
@@ -27,7 +27,7 @@ class AgentRun(Base, UUIDPkMixin):
     agent_id: Mapped[str] = mapped_column(String(50), index=True)
     incident_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), ForeignKey("incidents.id"), nullable=True)
     event_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), ForeignKey("events.id"), nullable=True)
-    status: Mapped[AgentStatusEnum] = mapped_column(String(20))
+    status: Mapped[AgentStatusEnum] = mapped_column(enum_column(AgentStatusEnum))
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     execution_time_ms: Mapped[float] = mapped_column(Float)
     fallback_used: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -39,7 +39,7 @@ class AgentHealth(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "agent_health"
 
     agent_id: Mapped[str] = mapped_column(String(50), unique=True, index=True)
-    status: Mapped[AgentStatusEnum] = mapped_column(String(20), default=AgentStatusEnum.PENDING)
+    status: Mapped[AgentStatusEnum] = mapped_column(enum_column(AgentStatusEnum), default=AgentStatusEnum.PENDING)
     last_run: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     execution_count: Mapped[int] = mapped_column(Integer, default=0)
     success_count: Mapped[int] = mapped_column(Integer, default=0)

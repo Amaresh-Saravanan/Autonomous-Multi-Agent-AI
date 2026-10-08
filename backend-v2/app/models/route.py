@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, Float, ForeignKey, JSON, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TimestampMixin, UUIDPkMixin
+from app.models.base import Base, TimestampMixin, UUIDPkMixin, enum_column
 
 
 class RouteStatusEnum(str, enum.Enum):
@@ -31,13 +31,13 @@ class Route(Base, UUIDPkMixin, TimestampMixin):
     distance_km: Mapped[float] = mapped_column(Float)
     eta_minutes: Mapped[float] = mapped_column(Float)
     geometry: Mapped[list] = mapped_column(JSON)
-    status: Mapped[RouteStatusEnum] = mapped_column(String(20), default=RouteStatusEnum.PLANNED)
+    status: Mapped[RouteStatusEnum] = mapped_column(enum_column(RouteStatusEnum), default=RouteStatusEnum.PLANNED)
 
 
 class RouteStatusEvent(Base, UUIDPkMixin):
     __tablename__ = "route_status"
 
     route_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("routes.id"), index=True)
-    status: Mapped[RouteStatusEnum] = mapped_column(String(20))
+    status: Mapped[RouteStatusEnum] = mapped_column(enum_column(RouteStatusEnum))
     note: Mapped[str | None] = mapped_column(String(300), nullable=True)
     detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

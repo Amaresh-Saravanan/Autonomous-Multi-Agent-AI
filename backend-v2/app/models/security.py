@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampMixin, UUIDPkMixin
+from app.models.base import Base, TimestampMixin, UUIDPkMixin, enum_column
 
 
 class RoleEnum(str, enum.Enum):
@@ -38,7 +38,7 @@ class Permission(Base, UUIDPkMixin):
 class RolePermission(Base, UUIDPkMixin):
     __tablename__ = "role_permissions"
 
-    role: Mapped[RoleEnum] = mapped_column(String(20), index=True)
+    role: Mapped[RoleEnum] = mapped_column(enum_column(RoleEnum), index=True)
     permission_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("permissions.id"))
 
 
@@ -47,7 +47,7 @@ class User(Base, UUIDPkMixin, TimestampMixin):
 
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
-    role: Mapped[RoleEnum] = mapped_column(String(20), index=True)
+    role: Mapped[RoleEnum] = mapped_column(enum_column(RoleEnum), index=True)
     agency_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("agencies.id"), index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -64,7 +64,7 @@ class Device(Base, UUIDPkMixin, TimestampMixin):
     hashed_secret: Mapped[str] = mapped_column(String(255))
     agency_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("agencies.id"), index=True)
     source_type: Mapped[str] = mapped_column(String(50))
-    status: Mapped[DeviceStatusEnum] = mapped_column(String(20), default=DeviceStatusEnum.ACTIVE)
+    status: Mapped[DeviceStatusEnum] = mapped_column(enum_column(DeviceStatusEnum), default=DeviceStatusEnum.ACTIVE)
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     agency: Mapped["Agency"] = relationship()

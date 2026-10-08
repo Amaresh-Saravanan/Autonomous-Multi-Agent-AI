@@ -9,7 +9,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, Float, ForeignKey, Index, JSON, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TimestampMixin, UUIDPkMixin
+from app.models.base import Base, TimestampMixin, UUIDPkMixin, enum_column
 
 
 class LocationStateEnum(str, enum.Enum):
@@ -33,9 +33,9 @@ class Incident(Base, UUIDPkMixin, TimestampMixin):
         Index("ix_incidents_status_severity", "status", "severity"),
     )
 
-    status: Mapped[IncidentStatusEnum] = mapped_column(String(20), default=IncidentStatusEnum.DETECTED)
+    status: Mapped[IncidentStatusEnum] = mapped_column(enum_column(IncidentStatusEnum), default=IncidentStatusEnum.DETECTED)
     severity: Mapped[float] = mapped_column(Float, default=0.0)
-    location_state: Mapped[LocationStateEnum] = mapped_column(String(20), default=LocationStateEnum.UNKNOWN)
+    location_state: Mapped[LocationStateEnum] = mapped_column(enum_column(LocationStateEnum), default=LocationStateEnum.UNKNOWN)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     district: Mapped[str | None] = mapped_column(String(120), nullable=True)
@@ -55,7 +55,7 @@ class Event(Base, UUIDPkMixin):
     )
     source_type: Mapped[str] = mapped_column(String(50), index=True)
     payload: Mapped[dict] = mapped_column(JSON)
-    location_state: Mapped[LocationStateEnum] = mapped_column(String(20), default=LocationStateEnum.UNKNOWN)
+    location_state: Mapped[LocationStateEnum] = mapped_column(enum_column(LocationStateEnum), default=LocationStateEnum.UNKNOWN)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

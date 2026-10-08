@@ -1,14 +1,22 @@
 """Declarative base + shared mixins for all V2 ORM models (Phase 2)."""
 
+import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Uuid
+from sqlalchemy import DateTime, Enum, Uuid
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
     pass
+
+
+def enum_column(enum_cls: type[enum.Enum], length: int = 20):
+    """VARCHAR-backed enum column (`native_enum=False`) so both SQLite and
+    PostgreSQL store the same portable representation and both coerce reads
+    back to the Python enum member — a plain `String` column does not."""
+    return Enum(enum_cls, native_enum=False, length=length, validate_strings=True)
 
 
 class UUIDPkMixin:
