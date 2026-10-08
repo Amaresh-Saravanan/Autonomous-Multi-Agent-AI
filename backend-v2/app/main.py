@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
+from app.api.ingestion import router as ingestion_router
 from app.config import get_settings
 from app.errors import register_exception_handlers
 
@@ -19,6 +20,7 @@ app.add_middleware(
 
 register_exception_handlers(app)
 app.include_router(auth_router)
+app.include_router(ingestion_router)
 
 
 @app.get("/health")

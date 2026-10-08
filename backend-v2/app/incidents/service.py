@@ -61,7 +61,9 @@ class IncidentService:
             return candidate
         return self.create(latitude=latitude, longitude=longitude, location_state=location_state)
 
-    def get(self, incident_id: uuid.UUID) -> Incident:
+    def get(self, incident_id: uuid.UUID | str) -> Incident:
+        if isinstance(incident_id, str):
+            incident_id = uuid.UUID(incident_id)
         incident = self.db.get(Incident, incident_id)
         if incident is None:
             raise NotFoundError(f"Incident {incident_id} not found")

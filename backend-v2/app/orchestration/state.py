@@ -7,11 +7,12 @@ exhausted."""
 
 import json
 import time
+from functools import lru_cache
 
 from redis.exceptions import WatchError
 
 from app.errors import ConcurrencyError
-from app.infrastructure.redis import RedisLike
+from app.infrastructure.redis import RedisLike, get_redis_client
 
 MAX_RETRIES = 10
 
@@ -61,3 +62,8 @@ class BlackboardService:
             f"Could not update blackboard for incident={incident_id} agent={agent_id} "
             f"after {MAX_RETRIES} attempts; another writer kept winning the race."
         )
+
+
+@lru_cache
+def get_blackboard_service() -> BlackboardService:
+    return BlackboardService(get_redis_client())
