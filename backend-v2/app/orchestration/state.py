@@ -25,6 +25,10 @@ class BlackboardService:
     def __init__(self, redis_client: RedisLike):
         self._redis = redis_client
 
+    @property
+    def redis_client(self) -> RedisLike:
+        return self._redis
+
     def get_incident(self, incident_id: str) -> dict:
         """All agent-scoped entries for one incident."""
         raw = self._redis.hgetall(_key(incident_id))

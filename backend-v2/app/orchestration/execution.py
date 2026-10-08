@@ -18,6 +18,7 @@ from app.orchestration.conditions import should_run
 from app.orchestration.state import BlackboardService
 from app.recommendations.service import create_from_agent_result
 from app.services.agent_health_service import record_run
+from app.services.alert_service import publish_if_worthy
 from app.services.audit_service import record as audit_record
 
 
@@ -60,14 +61,15 @@ def run_agent_node(agent: BaseAgent, *, db: Session, blackboard: BlackboardServi
         result = agent.run(context)
 
         first_rec = result.recommendations[0] if result.recommendations else {}
-        blackboard.merge(incident_key, agent.id, {
+        blackboard_entry = {
             "severity": first_rec.get("severity", context.severity),
             "action": first_rec.get("action"),
             "evidence": result.evidence,
             "rationale": result.reasoning,
             "confidence": result.confidence,
             "details": first_rec.get("details", {}),
-        })
+        }
+        blackboard.merge(incident_key, agent.id, blackboard_entry)
 
         record_run(db, state["incident_id"], state["event_id"], result)
 
@@ -80,6 +82,15 @@ def run_agent_node(agent: BaseAgent, *, db: Session, blackboard: BlackboardServi
             incident_id=state["incident_id"],
             recommendation_id=rec.id,
             metadata={"status": result.status.value, "fallback_used": result.fallback_used},
+        )
+        publish_if_worthy(
+            db,
+            incident_id=state["incident_id"],
+            agent_id=agent.id,
+            action=rec.action,
+            severity=blackboard_entry["severity"] or 0.0,
+            target_agency_id=rec.target_agency_id,
+            redis_client=blackboard.redis_client,
         )
 
         state["results"][agent.id] = result
