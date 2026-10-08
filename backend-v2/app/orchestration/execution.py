@@ -60,9 +60,15 @@ def run_agent_node(agent: BaseAgent, *, db: Session, blackboard: BlackboardServi
 
         result = agent.run(context)
 
+        # AG-1 is the only agent that assesses severity from scratch; every
+        # other agent's blackboard entry should carry the *current* incident
+        # severity (AG-1's latest), not the stale value the graph started
+        # with — otherwise every downstream agent's severity reads back as
+        # the initial 0.0, which also silently zeroed out alert worthiness.
+        current_severity = context.blackboard.get("AG-1", {}).get("severity", context.severity)
         first_rec = result.recommendations[0] if result.recommendations else {}
         blackboard_entry = {
-            "severity": first_rec.get("severity", context.severity),
+            "severity": first_rec.get("severity", current_severity),
             "action": first_rec.get("action"),
             "evidence": result.evidence,
             "rationale": result.reasoning,
