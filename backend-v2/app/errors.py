@@ -69,6 +69,14 @@ class ExternalServiceError(AppError):
     error_code = "external_service_error"
 
 
+class ConcurrencyError(AppError):
+    """Raised when a compare-and-update retries exhaust without converging
+    (Phase 11: blackboard updates must never silently lose a write)."""
+
+    status_code = 409
+    error_code = "concurrency_error"
+
+
 def _body(exc: AppError) -> dict:
     return {"error": exc.error_code, "message": exc.message, "details": exc.details}
 
