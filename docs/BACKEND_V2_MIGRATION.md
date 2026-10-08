@@ -19,13 +19,21 @@ reachable in this environment; code + SQLite/fakeredis-backed tests exist) ·
 | 2 | DB models + Alembic | MODELS DONE, ALEMBIC NEXT | PASS (SQLite, 2 tests) / NOT VERIFIED — PostgreSQL unavailable | All 20 tables in `app/models/*`; portable lat/lon (no mapped PostGIS column — `geom` added by migration, Postgres-dialect only, per analysis §16.6) |
 | 3 | Redis | NOT STARTED | - | `app/infrastructure/redis.py` next |
 | 4 | API error system | DONE | not yet exercised via HTTP (handlers not wired into `main.py` yet) | `app/errors.py`: AppError hierarchy + 2 FastAPI exception handlers |
-| 5-31 | — | NOT STARTED | - | See phase list in original spec message |
+| 3 | Redis | DONE | PASS (fakeredis, 4 tests) | `app/infrastructure/redis.py`: real client factory, no silent in-memory fallback (fixes V1 problem #2) |
+| 6 | Auth | DONE | PASS (6 tests) | `app/security/{jwt,auth,permissions}.py`: persistent users, argon2, JWT, `require_user`/`require_role`/`require_permission`/`require_agency_access`; `POST /api/v1/auth/login` wired |
+| 7 | Device auth | DONE | PASS (4 tests) | `app/security/devices.py`: `require_device(source_type)`; wrong secret / wrong source_type / revoked all rejected |
+| 11 | Blackboard | DONE | PASS (4 tests incl. 2-client race) | `app/orchestration/state.py`: Redis hash + WATCH/MULTI compare-and-update, `ConcurrencyError` on exhausted retries |
+| 8-10,12-31 | — | NOT STARTED | - | See phase list in original spec message |
 
-**Resume point:** next action is Phase 2 Alembic migration (`migrations/`,
-`alembic.ini`), then Phase 3 Redis abstraction (`app/infrastructure/redis.py`
-with fakeredis test fallback), then Phase 6 auth. `app/main.py` does not yet
-wire `register_exception_handlers` or any `api/` router — that happens once
-auth exists (Phase 6/8) since most routers need `require_user`.
+**Resume point:** next action is Phase 8-10: `app/ingestion/` (schemas,
+validators, normalizers for iot/weather/satellite/citizen) +
+`app/incidents/service.py` (persisted incidents + clustering) +
+`app/infrastructure/queue.py` (memory/redis-backed), landing ingestion as
+`202 Accepted` + background processing per Phase 8's mandate. Alembic
+migration (rest of Phase 2) is still pending — tracked here so it isn't
+dropped; SQLite `create_all()` is covering tests in the meantime.
+`app/main.py` has `register_exception_handlers` + the auth router wired;
+further routers get added as their underlying services land.
 
 ## Component migration table (populated incrementally)
 
