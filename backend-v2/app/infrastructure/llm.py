@@ -19,6 +19,7 @@ from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from app.config import get_settings
+from app.observability.metrics import LLM_FAILURES, LLM_LATENCY
 
 logger = logging.getLogger("app.llm")
 
@@ -67,13 +68,17 @@ class LLMService:
         start = time.monotonic()
 
         if self._client is None:
+            LLM_FAILURES.labels(provider=self.provider_name).inc()
             return self._degraded(start, "LLM provider not configured (missing API key or client)")
 
         try:
             content = self._call_with_retry(prompt, max_tokens)
         except Exception as exc:
             logger.warning("LLM call failed after retries: %s", exc)
+            LLM_FAILURES.labels(provider=self.provider_name).inc()
             return self._degraded(start, str(exc))
+        finally:
+            LLM_LATENCY.labels(provider=self.provider_name).observe(time.monotonic() - start)
 
         return LLMResult(
             status="SUCCESS",

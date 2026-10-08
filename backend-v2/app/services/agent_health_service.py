@@ -8,12 +8,17 @@ from sqlalchemy.orm import Session
 
 from app.agents.base import AgentResult
 from app.models.agent import AgentHealth, AgentRun, AgentStatusEnum
+from app.observability.metrics import AGENT_FALLBACKS, AGENT_LATENCY
 
 FAILURE_STATUSES = {AgentStatusEnum.FAILED, AgentStatusEnum.TIMEOUT, AgentStatusEnum.DEGRADED}
 DEGRADED_STREAK_THRESHOLD = 3
 
 
 def record_run(db: Session, incident_id, event_id, result: AgentResult) -> AgentHealth:
+    AGENT_LATENCY.labels(agent_id=result.agent_id).observe(result.execution_time_ms / 1000)
+    if result.fallback_used:
+        AGENT_FALLBACKS.labels(agent_id=result.agent_id).inc()
+
     db.add(
         AgentRun(
             agent_id=result.agent_id,

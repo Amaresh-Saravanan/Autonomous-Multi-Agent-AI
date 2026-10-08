@@ -1,19 +1,24 @@
 import asyncio
+import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
+from app.api.health import router as health_router
 from app.api.ingestion import router as ingestion_router
 from app.api.websocket import router as websocket_router
 from app.config import get_settings
 from app.errors import register_exception_handlers
 from app.infrastructure.redis import get_redis_client
 from app.infrastructure.websocket import get_connection_manager, run_pubsub_bridge
+from app.observability.logging import configure_logging
+from app.observability.metrics import API_REQUEST_LATENCY
 from app.orchestration.graph import start_worker_thread
 
 settings = get_settings()
+configure_logging(settings.log_level)
 
 
 @asynccontextmanager
@@ -41,8 +46,17 @@ app.add_middleware(
 
 register_exception_handlers(app)
 app.include_router(auth_router)
+app.include_router(health_router)
 app.include_router(ingestion_router)
 app.include_router(websocket_router)
+
+
+@app.middleware("http")
+async def record_api_latency(request: Request, call_next):
+    start = time.monotonic()
+    response = await call_next(request)
+    API_REQUEST_LATENCY.labels(path=request.url.path, method=request.method).observe(time.monotonic() - start)
+    return response
 
 
 @app.get("/health")
