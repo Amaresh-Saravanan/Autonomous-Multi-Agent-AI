@@ -15,15 +15,25 @@ reachable in this environment; code + SQLite/fakeredis-backed tests exist) ·
 | Phase | Area | Status | Validation | Notes |
 |---|---|---|---|---|
 | 0 | Analysis | DONE | PASS | `docs/BACKEND_V2_MIGRATION_ANALYSIS.md` |
-| 1 | Configuration | IN PROGRESS | - | |
+| 1 | Configuration | DONE | PASS (4 tests) | `app/config.py`: dev fallback secret, prod fail-safe, CORS parsing |
+| 2 | DB models + Alembic | MODELS DONE, ALEMBIC NEXT | PASS (SQLite, 2 tests) / NOT VERIFIED — PostgreSQL unavailable | All 20 tables in `app/models/*`; portable lat/lon (no mapped PostGIS column — `geom` added by migration, Postgres-dialect only, per analysis §16.6) |
+| 3 | Redis | NOT STARTED | - | `app/infrastructure/redis.py` next |
+| 4 | API error system | DONE | not yet exercised via HTTP (handlers not wired into `main.py` yet) | `app/errors.py`: AppError hierarchy + 2 FastAPI exception handlers |
+| 5-31 | — | NOT STARTED | - | See phase list in original spec message |
 
-(Table filled in as each phase lands — see component table below for the
-authoritative per-component record once populated.)
+**Resume point:** next action is Phase 2 Alembic migration (`migrations/`,
+`alembic.ini`), then Phase 3 Redis abstraction (`app/infrastructure/redis.py`
+with fakeredis test fallback), then Phase 6 auth. `app/main.py` does not yet
+wire `register_exception_handlers` or any `api/` router — that happens once
+auth exists (Phase 6/8) since most routers need `require_user`.
 
 ## Component migration table (populated incrementally)
 
 | V1 location | V2 destination | Classification | Status | Reason | Tests |
 |---|---|---|---|---|---|
+| `app/models.py` (dataclasses) | `app/models/*.py` (SQLAlchemy ORM) | REWRITTEN | DONE | In-memory dataclasses → persisted tables (Phase 2 requirement) | `tests/unit/test_models.py` |
+| `app/config` (scattered env reads / none) | `app/config.py` | REWRITTEN | DONE | Centralized `pydantic_settings`, fail-safe JWT secret | `tests/unit/test_config.py` |
+| (none in V1 — errors were bare exceptions/500s) | `app/errors.py` | BUILD | DONE (not yet wired into app) | Phase 4 structured error contract | none yet (no HTTP surface) |
 
 ## Environment facts (do not re-verify without new evidence)
 
