@@ -38,7 +38,7 @@ interface OperationsDataValue {
   citizenReports: CitizenReport[];
   wsStatus: string;
   ingestRecommendations: (recs: Recommendation[]) => void;
-  onIngested: (incidentId: string, recs: Recommendation[]) => void;
+  onIngested: (incidentId: string) => void;
 }
 
 const OperationsDataContext = createContext<OperationsDataValue | null>(null);
@@ -60,6 +60,15 @@ export function OperationsDataProvider({ children }: { children: ReactNode }) {
       return next;
     });
   }, []);
+
+  // V2's alert payload carries only {incident_id, level, message} — the
+  // recommendations themselves aren't inlined (see
+  // docs/BACKEND_V2_FRONTEND_COMPATIBILITY.md), so an alert triggers a
+  // re-fetch instead of a direct merge.
+  const refreshRecommendations = useCallback(async () => {
+    const recs = await fetchRecommendations(token);
+    ingestRecommendations(recs);
+  }, [token, ingestRecommendations]);
 
   const refreshSeverity = useCallback(
     async (incidentId: string) => {
@@ -85,7 +94,8 @@ export function OperationsDataProvider({ children }: { children: ReactNode }) {
   }, [token]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !token) return;
+    const activeToken = token; // narrow once; nested closures below don't retain the guard above
     fetchResources(token).then(setResources).catch(console.error);
     // Load recommendations already pending before this page loaded — the WS
     // below only pushes *new* ones, so without this a mid-incident refresh
@@ -99,7 +109,12 @@ export function OperationsDataProvider({ children }: { children: ReactNode }) {
     let ws: WebSocket;
     let closedByUs = false;
     function connect() {
-      ws = new WebSocket(API_BASE.replace("http", "ws") + "/ws/alerts");
+      // V2: /ws/alerts requires the same JWT issued at login — the browser
+      // can't set a custom Authorization header on a WS handshake, so the
+      // token travels as a query param instead.
+      ws = new WebSocket(
+        `${API_BASE.replace("http", "ws")}/ws/alerts?token=${encodeURIComponent(activeToken)}`
+      );
       ws.onopen = () => setWsStatus("live");
       ws.onclose = () => {
         setWsStatus("reconnecting…");
@@ -107,7 +122,7 @@ export function OperationsDataProvider({ children }: { children: ReactNode }) {
       };
       ws.onmessage = (evt) => {
         const msg: WsAlertsMessage = JSON.parse(evt.data);
-        ingestRecommendations(msg.recommendations);
+        refreshRecommendations();
         currentIncidentRef.current = msg.incident_id;
         refreshSeverity(msg.incident_id);
         refreshIncidentState(msg.incident_id);
@@ -123,21 +138,23 @@ export function OperationsDataProvider({ children }: { children: ReactNode }) {
   }, [
     user,
     token,
-    ingestRecommendations,
+    refreshRecommendations,
     refreshSeverity,
     refreshIncidentState,
     refreshCitizenReports,
   ]);
 
   const onIngested = useCallback(
-    (incidentId: string, recs: Recommendation[]) => {
-      ingestRecommendations(recs);
+    (incidentId: string) => {
+      // No recommendations yet — the agent chain hasn't run. Setting the
+      // current incident now means the WS alert that arrives once it does
+      // finish refreshes the right incident's severity/state immediately.
       currentIncidentRef.current = incidentId;
       refreshSeverity(incidentId);
       refreshIncidentState(incidentId);
       refreshCitizenReports();
     },
-    [ingestRecommendations, refreshSeverity, refreshIncidentState, refreshCitizenReports]
+    [refreshSeverity, refreshIncidentState, refreshCitizenReports]
   );
 
   const value: OperationsDataValue = {

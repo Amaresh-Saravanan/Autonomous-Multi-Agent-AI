@@ -30,7 +30,7 @@ def ingest_iot(
     blackboard: BlackboardService = Depends(get_blackboard_service),
 ) -> IngestAccepted:
     event = _service(db, queue, blackboard).ingest("iot", body)
-    return IngestAccepted(event_id=str(event.id))
+    return IngestAccepted(event_id=str(event.id), incident_id=str(event.incident_id))
 
 
 @router.post("/weather", response_model=IngestAccepted, status_code=status.HTTP_202_ACCEPTED)
@@ -42,7 +42,7 @@ def ingest_weather(
     blackboard: BlackboardService = Depends(get_blackboard_service),
 ) -> IngestAccepted:
     event = _service(db, queue, blackboard).ingest("weather", body)
-    return IngestAccepted(event_id=str(event.id))
+    return IngestAccepted(event_id=str(event.id), incident_id=str(event.incident_id))
 
 
 @router.post("/satellite", response_model=IngestAccepted, status_code=status.HTTP_202_ACCEPTED)
@@ -54,7 +54,7 @@ def ingest_satellite(
     blackboard: BlackboardService = Depends(get_blackboard_service),
 ) -> IngestAccepted:
     event = _service(db, queue, blackboard).ingest("satellite", body)
-    return IngestAccepted(event_id=str(event.id))
+    return IngestAccepted(event_id=str(event.id), incident_id=str(event.incident_id))
 
 
 @router.post("/citizen", response_model=IngestAccepted, status_code=status.HTTP_202_ACCEPTED)
@@ -66,4 +66,4 @@ def ingest_citizen(
     blackboard: BlackboardService = Depends(get_blackboard_service),
 ) -> IngestAccepted:
     event = _service(db, queue, blackboard).ingest("citizen", body)
-    return IngestAccepted(event_id=str(event.id))
+    return IngestAccepted(event_id=str(event.id), incident_id=str(event.incident_id))

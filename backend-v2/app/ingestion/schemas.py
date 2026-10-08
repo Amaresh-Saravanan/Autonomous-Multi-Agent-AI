@@ -47,4 +47,5 @@ class CitizenReport(EventCreate):
 
 class IngestAccepted(BaseModel):
     event_id: str
+    incident_id: str
     status: str = "accepted"

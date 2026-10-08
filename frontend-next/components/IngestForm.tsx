@@ -2,19 +2,20 @@
 
 import { useState, type FormEvent } from "react";
 import { ingestWaterLevel } from "@/lib/api";
-import type { Recommendation } from "@/lib/types";
 
 export default function IngestForm({
   onIngested,
 }: {
-  onIngested: (incidentId: string, recs: Recommendation[]) => void;
+  onIngested: (incidentId: string) => void;
 }) {
   const [reading, setReading] = useState("5.5");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    // V2: the response only confirms acceptance (202) — recommendations
+    // arrive later over the WS once the agent chain actually runs.
     const body = await ingestWaterLevel(parseFloat(reading));
-    onIngested(body.incident_id, body.recommendations);
+    onIngested(body.incident_id);
   }
 
   return (
