@@ -15,7 +15,11 @@ class Settings(BaseSettings):
     debug: bool = False
 
     database_url: str = "sqlite:///./v2_dev.db"
-    redis_url: str = "memory://"
+    # No in-process fallback scheme here on purpose (V1 problem #2 was a
+    # silent memory downgrade on Redis outage) — `uvicorn app.main:app`
+    # genuinely requires a reachable Redis; use QUEUE_BACKEND=memory only
+    # in tests, never as a production default.
+    redis_url: str = "redis://localhost:6379/0"
 
     jwt_secret: str | None = None
     jwt_algorithm: str = "HS256"
