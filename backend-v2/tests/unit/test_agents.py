@@ -1,4 +1,4 @@
-from app.agents.base import AgentContext
+from app.agents.base import AgentContext, AgentResult, BaseAgent
 from app.agents.citizen_assistance.agent import ChatRequest, CitizenAssistant
 from app.agents.damage_assessment.agent import DamageAssessmentAgent
 from app.agents.disaster_assessment.agent import DisasterAssessmentAgent
@@ -142,6 +142,23 @@ def test_ag7_says_information_unavailable_when_nothing_matches():
     response = assistant.chat(ChatRequest(message="xyzzy qwerty unmatched gibberish"))
     assert response.reasoning_mode == "unavailable"
     assert "not available" in response.reply.lower()
+
+
+def test_run_catches_execute_exception_and_returns_failed_result():
+    """Phase 23: one agent's exception must not propagate out of run()."""
+
+    class CrashingAgent(BaseAgent):
+        id = "AG-X"
+
+        def execute(self, context: AgentContext) -> AgentResult:
+            raise RuntimeError("simulated crash")
+
+    result = CrashingAgent().run(AgentContext(incident_id="inc-1"))
+    assert result.status == AgentStatusEnum.FAILED
+    assert result.fallback_used is True
+    assert result.errors == ["simulated crash"]
+    assert result.evidence  # validate_explainable() requires non-empty evidence
+    assert result.reasoning  # and non-empty rationale
 
 
 def test_ag8_summarizes_blackboard_without_citing_itself():
