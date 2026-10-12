@@ -17,9 +17,14 @@ export interface Recommendation {
   target_agency?: string | null;
 }
 
+// V2: no inline `recommendations` — the socket carries the alert only;
+// the frontend re-fetches recommendations on receipt (see
+// docs/BACKEND_V2_FRONTEND_COMPATIBILITY.md).
 export interface WsAlertsMessage {
+  alert_id: string;
   incident_id: string;
-  recommendations: Recommendation[];
+  level: string;
+  message: string;
 }
 
 export interface CurrentUser {

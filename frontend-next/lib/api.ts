@@ -18,13 +18,15 @@ export function decodeJwtPayload(token: string): CurrentUser {
 }
 
 export async function login(
-  username: string,
+  email: string,
   password: string
 ): Promise<string> {
-  const res = await fetch(`${API_BASE}/auth/login`, {
+  // V2: /api/v1/auth/login, and the field is `email` (Pydantic EmailStr),
+  // not `username`.
+  const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ email, password }),
   });
   if (!res.ok) throw new Error("invalid credentials");
   const body = await res.json();
@@ -48,7 +50,7 @@ export async function authFetch(
 export async function fetchResources(
   token: string | null
 ): Promise<ResourcesResponse> {
-  const res = await authFetch(`${API_BASE}/resources`, token);
+  const res = await authFetch(`${API_BASE}/api/v1/resources`, token);
   if (!res.ok) throw new Error(`resources fetch failed: ${res.status}`);
   return res.json();
 }
@@ -56,7 +58,7 @@ export async function fetchResources(
 export async function fetchRecommendations(
   token: string | null
 ): Promise<Recommendation[]> {
-  const res = await authFetch(`${API_BASE}/recommendations`, token);
+  const res = await authFetch(`${API_BASE}/api/v1/recommendations`, token);
   if (!res.ok) throw new Error(`recommendations fetch failed: ${res.status}`);
   return res.json();
 }
@@ -64,17 +66,22 @@ export async function fetchRecommendations(
 export async function fetchIncidents(
   token: string | null
 ): Promise<IncidentSummary[]> {
-  const res = await authFetch(`${API_BASE}/incidents`, token);
+  const res = await authFetch(`${API_BASE}/api/v1/incidents`, token);
   if (!res.ok) throw new Error(`incidents fetch failed: ${res.status}`);
   return res.json();
 }
 
 export async function fetchAudit(token: string | null): Promise<AuditEntry[]> {
-  const res = await authFetch(`${API_BASE}/audit`, token);
+  const res = await authFetch(`${API_BASE}/api/v1/audit`, token);
   if (!res.ok) throw new Error(`audit fetch failed: ${res.status}`);
   return res.json();
 }
 
+// DEFERRED (docs/BACKEND_V2_FRONTEND_COMPATIBILITY.md): V2 exposes
+// Prometheus text format at /api/v1/health/metrics, not V1's per-route JSON
+// summary. No V2 JSON-shaped metrics endpoint exists yet, so this call
+// stays pointed at the old path and will 404 until that's built — flagged
+// here rather than silently left broken.
 export async function fetchMetrics(token: string | null): Promise<MetricsSummary> {
   const res = await authFetch(`${API_BASE}/metrics`, token);
   if (!res.ok) throw new Error(`metrics fetch failed: ${res.status}`);
@@ -85,7 +92,10 @@ export async function postCitizenChat(
   message: string,
   language = "en"
 ): Promise<CitizenChatReply> {
-  const res = await fetch(`${API_BASE}/citizen/chat`, {
+  // V2: device-authenticated like ingestion (Phase 7 closes V1's "citizen
+  // chat is open" gap). The demo UI has no device credential to send yet —
+  // DEFERRED alongside the metrics gap above.
+  const res = await fetch(`${API_BASE}/api/v1/citizen/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, language }),
@@ -98,11 +108,15 @@ export async function fetchIncidentState(
   token: string | null,
   incidentId: string
 ): Promise<IncidentState> {
-  const res = await authFetch(`${API_BASE}/incidents/${incidentId}`, token);
+  const res = await authFetch(`${API_BASE}/api/v1/incidents/${incidentId}`, token);
   if (!res.ok) throw new Error(`incident state fetch failed: ${res.status}`);
   return res.json();
 }
 
+// DEFERRED (docs/BACKEND_V2_FRONTEND_COMPATIBILITY.md): V2 has no
+// citizen_reports list endpoint or incident severity-grid endpoint yet.
+// Paths left unchanged (pointing at V1 routes that don't exist on V2)
+// rather than invented against a backend surface that isn't built.
 export async function fetchCitizenReports(
   token: string | null,
   incidentId?: string
@@ -132,19 +146,40 @@ export async function decideRecommendation(
   recId: string,
   action: "approve" | "reject"
 ): Promise<Recommendation> {
+  // V2: one unified decide endpoint with the decision in the body (Phase
+  // 18 adds OVERRIDE alongside approve/reject) instead of V1's
+  // path-segment-per-action.
   const res = await authFetch(
-    `${API_BASE}/recommendations/${recId}/${action}`,
+    `${API_BASE}/api/v1/recommendations/${recId}/decide`,
     token,
-    { method: "POST" }
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decision: action }),
+    }
   );
   if (!res.ok) throw new Error(`decide failed: ${res.status}`);
   return res.json();
 }
 
+// Backend V2: ingestion is async (202, no synchronous recommendations —
+// see docs/BACKEND_V2_FRONTEND_COMPATIBILITY.md). The result arrives later
+// over the authenticated /ws/alerts socket, not in this response.
+//
+// V2 also requires device credentials, not a user bearer token, on
+// ingestion endpoints (Phase 7). This demo button is the one place those
+// credentials are read from NEXT_PUBLIC_* env vars — acceptable only
+// because it is a labelled simulate-a-sensor demo, never how a real
+// sensor should authenticate (a real device embeds its own secret, not
+// one shipped in browser JS).
 export async function ingestWaterLevel(reading: number) {
-  const res = await fetch(`${API_BASE}/ingest/iot`, {
+  const res = await fetch(`${API_BASE}/api/v1/ingestion/iot`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Device-Id": process.env.NEXT_PUBLIC_DEMO_DEVICE_ID ?? "",
+      "X-Device-Secret": process.env.NEXT_PUBLIC_DEMO_DEVICE_SECRET ?? "",
+    },
     body: JSON.stringify({
       sensor_id: "wl-042",
       metric: "water_level",
@@ -152,12 +187,12 @@ export async function ingestWaterLevel(reading: number) {
       unit: "m",
       lat: 13.0827,
       lon: 80.2707,
-      incident_id: "demo-1",
     }),
   });
+  if (!res.ok) throw new Error(`ingest failed: ${res.status}`);
   return res.json() as Promise<{
     event_id: string;
     incident_id: string;
-    recommendations: Recommendation[];
+    status: string;
   }>;
 }
