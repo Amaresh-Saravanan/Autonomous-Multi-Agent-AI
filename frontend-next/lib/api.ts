@@ -11,7 +11,7 @@ import type {
 } from "./types";
 
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8001";
 
 export function decodeJwtPayload(token: string): CurrentUser {
   return JSON.parse(atob(token.split(".")[1]));
@@ -167,19 +167,16 @@ export async function decideRecommendation(
 // over the authenticated /ws/alerts socket, not in this response.
 //
 // V2 also requires device credentials, not a user bearer token, on
-// ingestion endpoints (Phase 7). This demo button is the one place those
-// credentials are read from NEXT_PUBLIC_* env vars — acceptable only
-// because it is a labelled simulate-a-sensor demo, never how a real
-// sensor should authenticate (a real device embeds its own secret, not
-// one shipped in browser JS).
+// ingestion endpoints (Phase 7). The device secret must never reach the
+// browser bundle (NEXT_PUBLIC_* vars are inlined into client JS at build
+// time), so this goes through a local Next.js route handler
+// (app/api/demo-ingest/route.ts) that holds the credentials server-side
+// and proxies to the real backend — never how a real sensor should
+// authenticate, but this is a labelled simulate-a-sensor demo button only.
 export async function ingestWaterLevel(reading: number) {
-  const res = await fetch(`${API_BASE}/api/v1/ingestion/iot`, {
+  const res = await fetch("/api/demo-ingest", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Device-Id": process.env.NEXT_PUBLIC_DEMO_DEVICE_ID ?? "",
-      "X-Device-Secret": process.env.NEXT_PUBLIC_DEMO_DEVICE_SECRET ?? "",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       sensor_id: "wl-042",
       metric: "water_level",
