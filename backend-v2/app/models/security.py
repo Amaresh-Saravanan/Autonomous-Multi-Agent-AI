@@ -50,6 +50,7 @@ class User(Base, UUIDPkMixin, TimestampMixin):
     role: Mapped[RoleEnum] = mapped_column(enum_column(RoleEnum), index=True)
     agency_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("agencies.id"), index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
     agency: Mapped["Agency"] = relationship()
 

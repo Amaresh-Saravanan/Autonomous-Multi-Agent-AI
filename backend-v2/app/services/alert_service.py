@@ -8,7 +8,7 @@ re-broadcast (never silently dropped with no trace)."""
 import json
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.infrastructure.redis import RedisLike, get_redis_client
@@ -36,6 +36,7 @@ def publish_if_worthy(
     action: str | None,
     severity: float,
     target_agency_id: uuid.UUID | None,
+    is_global: bool = False,
     redis_client: RedisLike | None = None,
 ) -> Alert | None:
     """Below-threshold recommendations are not alert-worthy at all — no row
@@ -53,6 +54,7 @@ def publish_if_worthy(
         level=level_for_severity(severity),
         message=f"{agent_id}: {action}",
         target_agency_id=target_agency_id,
+        is_global=is_global,
         dedup_key=dedup_key,
         status=AlertStatusEnum.SUPPRESSED if already_published else AlertStatusEnum.PUBLISHED,
     )
@@ -63,7 +65,7 @@ def publish_if_worthy(
         return alert
 
     client = redis_client or get_redis_client()
-    channel = f"alerts:{target_agency_id or 'unassigned'}"
+    channel = "alerts:global" if is_global else f"alerts:{target_agency_id or 'unassigned'}"
     client.publish(channel, json.dumps({
         "alert_id": str(alert.id), "incident_id": str(incident_id), "level": alert.level.value, "message": alert.message,
     }))
@@ -73,5 +75,5 @@ def publish_if_worthy(
 def list_for_user(db: Session, user: User) -> list[Alert]:
     stmt = select(Alert)
     if user.role != RoleEnum.ADMIN:
-        stmt = stmt.where(Alert.target_agency_id == user.agency_id)
+        stmt = stmt.where(or_(Alert.target_agency_id == user.agency_id, Alert.is_global.is_(True)))
     return list(db.scalars(stmt.order_by(Alert.created_at.desc())))

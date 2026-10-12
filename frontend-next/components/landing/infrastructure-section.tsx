@@ -3,12 +3,10 @@
 import { useEffect, useState, useRef } from "react";
 
 const locations = [
-  { city: "Sensor Networks", region: "IoT Devices", latency: "Real-time" },
-  { city: "Satellite Feeds", region: "EO Imagery", latency: "Near real-time" },
-  { city: "Weather Services", region: "NOAA / ECMWF", latency: "< 5 min" },
-  { city: "Citizen Reports", region: "Mobile / Web", latency: "Instant" },
-  { city: "Social Media", region: "Public Signals", latency: "Streaming" },
-  { city: "Government Feeds", region: "FEMA / USGS", latency: "Continuous" },
+  { city: "Sensor Networks", region: "IoT devices", latency: "POST /ingestion/iot" },
+  { city: "Satellite Feeds", region: "Earth-observation imagery", latency: "POST /ingestion/satellite" },
+  { city: "Weather Services", region: "Forecast / nowcast feeds", latency: "POST /ingestion/weather" },
+  { city: "Citizen Reports", region: "Mobile / web form", latency: "POST /ingestion/citizen" },
 ];
 
 export function InfrastructureSection() {

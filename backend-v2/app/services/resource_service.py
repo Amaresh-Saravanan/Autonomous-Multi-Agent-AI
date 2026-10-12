@@ -8,13 +8,14 @@ DISCARD list)."""
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.resource import Hospital, RescueTeam, Resource, Shelter
+from app.models.resource import Ambulance, Hospital, RescueTeam, Resource, Shelter
 
 
 def load_resource_snapshot(db: Session) -> dict:
     hospitals = db.scalars(select(Hospital)).all()
     shelters = db.scalars(select(Shelter)).all()
     teams = db.scalars(select(RescueTeam)).all()
+    ambulances = db.scalars(select(Ambulance)).all()
     supplies_rows = db.scalars(select(Resource)).all()
 
     return {
@@ -33,7 +34,11 @@ def load_resource_snapshot(db: Session) -> dict:
              "status": t.status.value}
             for t in teams
         ],
-        "ambulances": [],
+        "ambulances": [
+            {"id": str(a.id), "agency_id": str(a.agency_id), "name": a.name, "lat": a.latitude, "lon": a.longitude,
+             "status": a.status.value, "hospital_id": str(a.hospital_id) if a.hospital_id else None}
+            for a in ambulances
+        ],
         "supplies": {r.category: r.quantity for r in supplies_rows},
     }
 
@@ -41,9 +46,17 @@ def load_resource_snapshot(db: Session) -> dict:
 def seed_dev_resources(db: Session, agency_id) -> None:
     """ponytail: hardcoded synthetic coordinates, same as V1's resources.py.
     Fine for a dev/demo seed; never called from production startup paths."""
+    coastal = Hospital(name="Coastal General", agency_id=agency_id, latitude=13.05, longitude=80.28,
+                       beds_total=120, beds_free=8, ambulances_total=2, ambulances_free=2)
+    city = Hospital(name="City General", agency_id=agency_id, latitude=13.09, longitude=80.25,
+                    beds_total=200, beds_free=45, ambulances_total=2, ambulances_free=2)
+    db.add_all([coastal, city])
+    db.flush()
     db.add_all([
-        Hospital(name="Coastal General", agency_id=agency_id, latitude=13.05, longitude=80.28, beds_total=120, beds_free=8),
-        Hospital(name="City General", agency_id=agency_id, latitude=13.09, longitude=80.25, beds_total=200, beds_free=45),
+        Ambulance(name="AMB-C1", agency_id=agency_id, hospital_id=coastal.id, latitude=13.05, longitude=80.28),
+        Ambulance(name="AMB-C2", agency_id=agency_id, hospital_id=coastal.id, latitude=13.05, longitude=80.28),
+        Ambulance(name="AMB-G1", agency_id=agency_id, hospital_id=city.id, latitude=13.09, longitude=80.25),
+        Ambulance(name="AMB-G2", agency_id=agency_id, hospital_id=city.id, latitude=13.09, longitude=80.25),
         Shelter(name="Community Hall A", agency_id=agency_id, latitude=13.07, longitude=80.26, capacity=300, occupied=300),
         Shelter(name="School Ground B", agency_id=agency_id, latitude=13.04, longitude=80.29, capacity=500, occupied=120),
         RescueTeam(name="Rescue Team Alpha", agency_id=agency_id, latitude=13.06, longitude=80.27),

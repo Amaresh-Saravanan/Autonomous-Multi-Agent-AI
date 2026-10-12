@@ -54,6 +54,16 @@ class Settings(BaseSettings):
             "Refusing to start with no secret configured."
         )
 
+    @model_validator(mode="after")
+    def _require_strong_secret_in_production(self) -> "Settings":
+        if self.app_env == "production" and self.jwt_secret and (
+            len(self.jwt_secret) < 32 or "change-me" in self.jwt_secret.lower()
+        ):
+            raise RuntimeError(
+                "JWT_SECRET must be at least 32 characters and not a placeholder when APP_ENV=production."
+            )
+        return self
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

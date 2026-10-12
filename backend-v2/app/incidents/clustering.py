@@ -6,13 +6,20 @@ ever added, is a separate background step — DEFERRED, see
 docs/BACKEND_V2_MIGRATION.md). Swappable for a PostGIS `ST_DWithin` query
 later without changing the call site."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.geo import distance_km
 from app.models.incident import Incident
 
 RADIUS_KM = 5.0
 WINDOW = timedelta(hours=1)
+
+
+def _aware(dt: datetime) -> datetime:
+    """SQLite hands back naive datetimes even for timezone=True columns
+    (PostgreSQL returns aware ones). Everything we store is UTC, so treat a
+    naive value as UTC instead of crashing the comparison."""
+    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
 
 
 def find_cluster_candidate(
@@ -25,7 +32,7 @@ def find_cluster_candidate(
     for incident in open_incidents:
         if incident.latitude is None or incident.longitude is None:
             continue
-        if received_at - incident.updated_at > WINDOW:
+        if _aware(received_at) - _aware(incident.updated_at) > WINDOW:
             continue
         d = distance_km(longitude, latitude, incident.longitude, incident.latitude)
         if d <= best_distance:

@@ -1,3 +1,5 @@
+export type RecommendationStatus = "pending" | "approved" | "rejected" | "overridden" | "expired";
+
 export interface Recommendation {
   rec_id: string;
   incident_id: string;
@@ -6,7 +8,7 @@ export interface Recommendation {
   rationale: string;
   confidence: number;
   severity: number;
-  status: "pending" | "approved" | "rejected";
+  status: RecommendationStatus;
   created_at: string;
   evidence: string[];
   geo?: { type: "Point"; coordinates: [number, number] } | null;
@@ -27,11 +29,14 @@ export interface WsAlertsMessage {
   message: string;
 }
 
+// Built client-side at login from the V2 token response (the JWT itself only
+// carries sub/role/agency_id/exp). `role` is lower-cased for the UI's rank map.
 export interface CurrentUser {
-  username: string;
+  username: string; // login email
   role: "admin" | "operator" | "viewer";
-  agency: string;
-  exp: number;
+  agency: string; // agency display name (falls back to id)
+  exp: number; // epoch seconds, from the JWT
+  mustChangePassword?: boolean; // admin-issued temporary password
 }
 
 export interface ResourceItem {
@@ -87,6 +92,21 @@ export interface CitizenChatReply {
   reply: string;
   language: string;
   llm_used: boolean;
+  sources?: string[];
+  /** True when the reply is not in the language the citizen asked for. */
+  language_fallback?: boolean;
+}
+
+// GET /api/v1/agents/health (PRD resilience: agent failures are visible).
+export interface AgentHealth {
+  agent_id: string;
+  status: string;
+  last_run: string | null;
+  execution_count: number;
+  failure_count: number;
+  average_latency_ms: number;
+  degraded_mode: boolean;
+  last_error: string | null;
 }
 
 // GET /audit (tracker 3.11.6.10 / BE-2, admin-only).
@@ -108,4 +128,48 @@ export interface CitizenReport {
   confidence: number;
   flagged_for_review: boolean;
   timestamp: string;
+}
+
+export interface ForecastHorizon {
+  hours: number;
+  predicted_value: number;
+  predicted_severity: number;
+}
+
+// PRD DS-2. `insufficient_data` is a normal answer, not an error.
+export interface IncidentForecast {
+  status: "ok" | "insufficient_data";
+  metric: string;
+  method: string;
+  n_points: number;
+  reason?: string;
+  sensor_id?: string;
+  unit?: string;
+  trend?: "rising" | "falling" | "steady";
+  slope_per_hour?: number;
+  current_value?: number;
+  current_severity?: number;
+  fit_r2?: number;
+  confidence?: "low" | "moderate";
+  as_of?: string;
+  horizons: ForecastHorizon[];
+  disclaimer?: string;
+}
+
+// SEC-1 access requests (admin-approved signup / password reset).
+export interface AccessRequest {
+  id: string;
+  kind: "SIGNUP" | "RESET";
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  email: string;
+  full_name: string | null;
+  agency_text: string | null;
+  requested_role: string | null;
+  created_at: string | null;
+  decided_at: string | null;
+}
+
+export interface AgencyOption {
+  id: string;
+  name: string;
 }

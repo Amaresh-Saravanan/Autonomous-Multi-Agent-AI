@@ -12,6 +12,8 @@ export function HeroSection() {
   const [wordIndex, setWordIndex] = useState(0);
 
   useEffect(() => {
+    // Mount flag that triggers the entrance animation after hydration.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsVisible(true);
   }, []);
 
@@ -146,10 +148,10 @@ export function HeroSection() {
           {[...Array(2)].map((_, i) => (
             <div key={i} className="flex gap-16">
               {[
-                { value: "6", label: "AI agents coordinated", company: "MULTI-AGENT" },
-                { value: "<30s", label: "incident detection", company: "REAL-TIME" },
-                { value: "100%", label: "explainable recs", company: "AUDITABLE" },
-                { value: "4", label: "data source types", company: "FUSED" },
+                { value: "8", label: "AI agents coordinated", company: "MULTI-AGENT" },
+                { value: "<30s", label: "alert latency target", company: "REAL-TIME" },
+                { value: "100%", label: "recs carry evidence", company: "AUDITABLE" },
+                { value: "4", label: "ingestion source types", company: "FUSED" },
               ].map((stat) => (
                 <div key={`${stat.company}-${i}`} className="flex items-baseline gap-4">
                   <span className="text-4xl lg:text-5xl font-display">{stat.value}</span>

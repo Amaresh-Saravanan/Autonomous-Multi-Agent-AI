@@ -81,6 +81,8 @@ export default function DashboardGrid({
   const [layout, setLayout] = useState<Layout>(() => defaultForRole(role));
 
   useEffect(() => {
+    // Layout lives in localStorage, which only exists after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLayout(loadLayout(role));
   }, [role]);
 

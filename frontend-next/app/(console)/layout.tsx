@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { OperationsDataProvider } from "@/lib/operations-context";
 import Sidebar from "@/components/Sidebar";
+import ForcePasswordChange from "@/components/ForcePasswordChange";
 import ConsoleTopbar from "@/components/ConsoleTopbar";
 
 // Shared shell for every authenticated route (plan Phase M, UX_DESIGN §3.2).
@@ -26,6 +27,7 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
   }, [user, router]);
 
   if (!user) return null;
+  if (user.mustChangePassword) return <ForcePasswordChange />;
 
   return (
     <OperationsDataProvider>

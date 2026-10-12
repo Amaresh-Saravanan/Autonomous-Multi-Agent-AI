@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 import { decideRecommendation } from "@/lib/api";
@@ -36,6 +37,7 @@ export default function RecCard({
 }) {
   const { token, user } = useAuth();
   const reduce = useReducedMotion();
+  const [error, setError] = useState<string | null>(null);
   const cls = sevClass(rec.severity);
   // Viewer role can read recommendations but not decide them (UX_DESIGN §3.4:
   // Recommendations = "Read" for viewer, "Approve/reject" for operator+) —
@@ -44,11 +46,12 @@ export default function RecCard({
   const canDecide = user?.role !== "viewer";
 
   async function decide(action: "approve" | "reject") {
+    setError(null);
     try {
       const updated = await decideRecommendation(token, rec.rec_id, action);
       onDecided(updated);
     } catch {
-      alert("Failed to update recommendation");
+      setError("Couldn't save that decision — it may already be decided, or you lack permission.");
     }
   }
 
@@ -98,6 +101,11 @@ export default function RecCard({
           >
             REJECT
           </button>
+        </div>
+      )}
+      {error && (
+        <div role="alert" className="mt-console-sm text-[11px] text-[var(--sev-critical)]">
+          {error}
         </div>
       )}
       {rec.status === "pending" && !canDecide && (

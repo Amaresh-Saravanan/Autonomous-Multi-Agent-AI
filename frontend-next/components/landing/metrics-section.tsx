@@ -12,7 +12,7 @@ function AnimatedCounter({ end, suffix = "", prefix = "" }: { end: number; suffi
       ([entry]) => {
         if (entry.isIntersecting && !hasAnimated) {
           setHasAnimated(true);
-          let start = 0;
+          const start = 0;
           const duration = 2000;
           const startTime = performance.now();
 
@@ -46,28 +46,28 @@ function AnimatedCounter({ end, suffix = "", prefix = "" }: { end: number; suffi
 
 const metrics = [
   { 
-    value: 6, 
+    value: 8, 
     suffix: "", 
     prefix: "",
-    label: "AI agents in pipeline",
+    label: "Specialised AI agents",
   },
   { 
-    value: 99, 
-    suffix: ".9%", 
+    value: 3, 
+    suffix: "", 
     prefix: "",
-    label: "Recommendation uptime",
+    label: "Citizen-assistant languages",
   },
   { 
     value: 30, 
     suffix: "s", 
     prefix: "<",
-    label: "Incident detection time",
+    label: "Alert latency target (seconds)",
   },
   { 
     value: 100, 
     suffix: "%", 
     prefix: "",
-    label: "Explainable outputs",
+    label: "Recommendations carry evidence",
   },
 ];
 

@@ -29,11 +29,16 @@ class ConnectionManager:
 
     async def broadcast(self, target_agency_id: str | None, payload: dict) -> None:
         """`target_agency_id` is the agency the alert was published for, or
-        None/"unassigned". ADMIN sockets receive everything; everyone else
+        None/"unassigned", or "global" (situation-level alerts every authenticated
+        socket receives). ADMIN sockets receive everything; everyone else
         only receives messages for their own agency."""
         stale = []
         for websocket, user in self._connections.items():
-            if user.role != RoleEnum.ADMIN and str(user.agency_id) != target_agency_id:
+            if (
+                target_agency_id != "global"
+                and user.role != RoleEnum.ADMIN
+                and str(user.agency_id) != target_agency_id
+            ):
                 continue
             try:
                 await websocket.send_json(payload)

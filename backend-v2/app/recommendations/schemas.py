@@ -20,6 +20,11 @@ class RecommendationResponse(BaseModel):
     status: str
     created_at: datetime
     expires_at: datetime | None
+    # Console fields (PRD UI-2, DS-7). Populated by `service.to_response`.
+    severity: float = 0.0
+    evidence: list[str] = []
+    details: dict = {}
+    geo: dict | None = None
 
 
 class RecommendationDecision(BaseModel):

@@ -1,12 +1,12 @@
 ﻿"use client";
 
 import { useAuth } from "@/lib/auth-context";
+import ChangePasswordForm from "./ChangePasswordForm";
 import ThemeToggle from "./ThemeToggle";
 
-// Settings (tracker 3.11.6.11, UX_DESIGN §3.3): profile (from JWT claims,
-// [UI-only]), theme, layout reset. Deliberately omits password change and
-// notification preferences — auth.py has no mutation endpoints for either
-// (tracker BE-6), and a form that posts nowhere is worse than no form.
+// Settings (tracker 3.11.6.11, UX_DESIGN §3.3): profile, password change
+// (POST /auth/change-password), theme, layout reset. Notification
+// preferences are still omitted — there is no backend for them.
 export default function SettingsPage() {
   const { user, logout } = useAuth();
 
@@ -74,6 +74,13 @@ export default function SettingsPage() {
             Reset to default
           </button>
         </div>
+      </div>
+
+      <div className="mt-console-lg max-w-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-console-md shadow-lg backdrop-blur-xl">
+        <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
+          Change password
+        </h2>
+        <ChangePasswordForm />
       </div>
 
       <div className="mt-console-lg max-w-lg">

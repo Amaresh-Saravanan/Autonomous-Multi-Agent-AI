@@ -6,8 +6,8 @@ import { useOperationsData } from "@/lib/operations-context";
 import RecCard from "./RecCard";
 import type { Recommendation } from "@/lib/types";
 
-type StatusTab = "pending" | "approved" | "rejected";
-const TABS: StatusTab[] = ["pending", "approved", "rejected"];
+type StatusTab = "pending" | "approved" | "rejected" | "overridden";
+const TABS: StatusTab[] = ["pending", "approved", "rejected", "overridden"];
 
 // Human approval gate (tracker 3.11.6.4, UX_DESIGN §3.3 Recommendations):
 // tabs by status + filters by agent/severity, full-width (vs the /command

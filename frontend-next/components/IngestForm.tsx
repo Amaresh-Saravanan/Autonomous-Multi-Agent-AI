@@ -2,21 +2,32 @@
 
 import { useState, type FormEvent } from "react";
 import { ingestWaterLevel } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
 export default function IngestForm({
   onIngested,
 }: {
   onIngested: (incidentId: string) => void;
 }) {
+  const { token, user } = useAuth();
   const [reading, setReading] = useState("5.5");
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     // V2: the response only confirms acceptance (202) — recommendations
     // arrive later over the WS once the agent chain actually runs.
-    const body = await ingestWaterLevel(parseFloat(reading));
-    onIngested(body.incident_id);
+    setError(null);
+    try {
+      const body = await ingestWaterLevel(token, parseFloat(reading));
+      onIngested(body.incident_id);
+    } catch {
+      setError("Demo sensor unavailable");
+    }
   }
+
+  // The demo sensor is a server-side operator+ tool (see /api/demo-ingest).
+  if (!user || user.role === "viewer") return null;
 
   return (
     <form
@@ -37,6 +48,7 @@ export default function IngestForm({
       >
         Send critical spike
       </button>
+      {error && <span className="text-console-error">{error}</span>}
     </form>
   );
 }

@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { fetchCitizenReports, fetchIncidentState } from "@/lib/api";
+import { fetchCitizenReports, fetchForecast, fetchIncidentState } from "@/lib/api";
 import { agentEntries } from "@/lib/incident-format";
-import type { CitizenReport, IncidentState } from "@/lib/types";
+import type { CitizenReport, IncidentForecast, IncidentState } from "@/lib/types";
 
 // Incident command room (tracker 3.11.6.3, UX_DESIGN §3.3): header + AG-8
 // summary + all agent outputs + conflicts + citizen reports for one
@@ -17,7 +17,10 @@ export default function IncidentDetailPage({ incidentId }: { incidentId: string 
   const [state, setState] = useState<IncidentState | null>(null);
   const [reports, setReports] = useState<CitizenReport[]>([]);
 
+  const [forecast, setForecast] = useState<IncidentForecast | null>(null);
+
   useEffect(() => {
+    fetchForecast(token, incidentId).then(setForecast).catch(console.error);
     fetchIncidentState(token, incidentId).then(setState).catch(console.error);
     fetchCitizenReports(token, incidentId).then(setReports).catch(console.error);
   }, [token, incidentId]);
@@ -50,6 +53,48 @@ export default function IncidentDetailPage({ incidentId }: { incidentId: string 
           <p className="font-console-body-sm text-console-body-sm leading-relaxed text-console-on-surface-variant">
             {situationSummary.rationale}
           </p>
+        </div>
+      )}
+
+      {forecast && (
+        <div className="mb-console-lg rounded-xl border border-console-outline-variant/40 bg-console-surface/80 p-console-md shadow-lg backdrop-blur-xl">
+          <h2 className="mb-console-sm font-console-label-caps text-console-label-caps uppercase text-console-primary">
+            Predicted Impact (heuristic)
+          </h2>
+          {forecast.status === "ok" ? (
+            <>
+              <p className="mb-console-sm font-console-body-sm text-console-body-sm text-console-on-surface-variant">
+                Water level {forecast.trend} ({forecast.slope_per_hour! >= 0 ? "+" : ""}
+                {forecast.slope_per_hour}/h), currently {forecast.current_value}
+                {forecast.unit}. Confidence: {forecast.confidence} (fit R² {forecast.fit_r2}, {forecast.n_points}{" "}
+                readings).
+              </p>
+              <div className="grid grid-cols-3 gap-console-sm">
+                {forecast.horizons.map((h) => (
+                  <div
+                    key={h.hours}
+                    className="rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-console-md py-console-sm"
+                  >
+                    <div className="font-console-label-caps text-[10px] uppercase text-console-outline">
+                      +{h.hours}h
+                    </div>
+                    <div className="font-console-data-tabular text-console-data-tabular text-console-on-surface">
+                      {h.predicted_value}
+                      {forecast.unit}
+                    </div>
+                    <div className="font-console-data-tabular text-[10px] text-console-outline">
+                      severity {h.predicted_severity.toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-console-sm font-console-body-sm text-[11px] text-console-outline">{forecast.disclaimer}</p>
+            </>
+          ) : (
+            <p className="font-console-body-sm text-console-body-sm text-console-on-surface-variant">
+              No forecast yet: {forecast.reason}
+            </p>
+          )}
         </div>
       )}
 

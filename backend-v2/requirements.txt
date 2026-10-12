@@ -1,8 +1,8 @@
 fastapi
 uvicorn[standard]
 pydantic
-pydantic-settings
 email-validator
+pydantic-settings
 pytest
 httpx
 sqlalchemy>=2.0

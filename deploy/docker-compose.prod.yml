@@ -1,0 +1,88 @@
+# Production-shaped stack: Postgres/PostGIS + Redis (internal only), backend-v2, frontend.
+#
+#   cp deploy/.env.example deploy/.env      # fill in every value
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d --build
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env run --rm seed   # first run only
+#
+# Terminate TLS in front of this (reverse proxy / load balancer): browsers must
+# reach the frontend and the API over https, and the API over wss for /ws/alerts.
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: disaster
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: disaster_v2
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U disaster"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ../backend-v2
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment: &backend_env
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://disaster:${POSTGRES_PASSWORD}@postgres:5432/disaster_v2
+      REDIS_URL: redis://redis:6379/0
+      QUEUE_BACKEND: redis
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET (>=32 chars)}
+      CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS to the public frontend origin}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  frontend:
+    build:
+      context: ../frontend-next
+      args:
+        NEXT_PUBLIC_API_BASE: ${PUBLIC_API_BASE:?set PUBLIC_API_BASE (public https URL of the backend)}
+        NEXT_PUBLIC_MAP_STYLE_URL: ${MAP_STYLE_URL:-}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_URL: http://backend:8001
+      CITIZEN_DEVICE_ID: citizen-default
+      CITIZEN_DEVICE_SECRET: ${CITIZEN_DEVICE_SECRET:?set CITIZEN_DEVICE_SECRET}
+      DEMO_INGEST_ENABLED: "false"
+    depends_on:
+      - backend
+
+  # One-off bootstrap: admin user, agencies, citizen + iot devices. Idempotent.
+  seed:
+    build: ../backend-v2
+    profiles: ["seed"]
+    environment:
+      <<: *backend_env
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:?set SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?set SEED_ADMIN_PASSWORD}
+      CITIZEN_DEVICE_SECRET: ${CITIZEN_DEVICE_SECRET}
+    command: ["sh", "-c", "alembic upgrade head && python -m app.seed"]
+    depends_on:
+      postgres: { condition: service_healthy }
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,5 +1,7 @@
 # Runbook
 
+> **Scope:** this runbook describes the V1 backend (`backend/`, port 8000). For the deployed stack (backend-v2 + frontend-next) see `docs/DEPLOYMENT.md`; V2 users are created with `python -m app.seed`, and logins use **email**, not the V1 usernames below.
+
 How to run, log in, and operate the backend locally. Generated from the final Phase 3 state — see `docs/MIGRATION_TRACKER.md` for build history and `docs/superpowers/specs/2026-08-13-rbac-design.md` for the auth design.
 
 ## Setup

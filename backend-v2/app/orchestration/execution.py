@@ -79,7 +79,9 @@ def run_agent_node(agent: BaseAgent, *, db: Session, blackboard: BlackboardServi
 
         record_run(db, state["incident_id"], state["event_id"], result)
 
-        rec = create_from_agent_result(db, state["incident_id"], result)
+        rec = create_from_agent_result(
+            db, state["incident_id"], result, severity=blackboard_entry["severity"] or 0.0
+        )
         audit_record(
             db,
             actor_type=ActorTypeEnum.AGENT,
@@ -96,6 +98,7 @@ def run_agent_node(agent: BaseAgent, *, db: Session, blackboard: BlackboardServi
             action=rec.action,
             severity=blackboard_entry["severity"] or 0.0,
             target_agency_id=rec.target_agency_id,
+            is_global=rec.is_global,
             redis_client=blackboard.redis_client,
         )
 

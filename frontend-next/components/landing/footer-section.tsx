@@ -1,34 +1,23 @@
 "use client";
 
-import { ArrowUpRight } from "lucide-react";
 import { AnimatedWave } from "./animated-wave";
 
 const footerLinks = {
   Platform: [
     { name: "Features", href: "#features" },
     { name: "How It Works", href: "#how-it-works" },
-    { name: "Data Sources", href: "#data-sources" },
+    { name: "Integrations", href: "#integrations" },
     { name: "Security", href: "#security" },
   ],
   Resources: [
     { name: "Documentation", href: "#documentation" },
-    { name: "API Reference", href: "#documentation" },
-    { name: "Architecture", href: "#" },
-    { name: "Status", href: "#" },
+    { name: "Citizen Help", href: "/citizen" },
   ],
-  Community: [
-    { name: "About", href: "#about" },
-    { name: "GitHub", href: "#" },
-    { name: "Contributing", href: "#" },
-    { name: "Contact", href: "#" },
+  Account: [
+    { name: "Sign in", href: "/login" },
+    { name: "Request access", href: "/signup" },
   ],
 };
-
-const socialLinks = [
-  { name: "Twitter", href: "#" },
-  { name: "GitHub", href: "#" },
-  { name: "LinkedIn", href: "#" },
-];
 
 export function FooterSection() {
   return (
@@ -52,20 +41,6 @@ export function FooterSection() {
               <p className="text-muted-foreground leading-relaxed mb-8 max-w-xs">
                 A multi-agent disaster response platform that ingests sensor, satellite, weather, and citizen data, clusters incidents, and recommends coordinated response actions — reviewed and approved by human operators.
               </p>
-
-              {/* Social Links */}
-              <div className="flex gap-6">
-                {socialLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
-                  >
-                    {link.name}
-                    <ArrowUpRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                  </a>
-                ))}
-              </div>
             </div>
 
             {/* Link Columns */}

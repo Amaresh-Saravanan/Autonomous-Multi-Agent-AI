@@ -3,6 +3,7 @@ autogenerate and for `create_all()` in tests."""
 
 from app.models.base import Base
 from app.models import (  # noqa: F401
+    access,
     agent,
     alert,
     audit,

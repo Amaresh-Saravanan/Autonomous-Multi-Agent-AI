@@ -16,7 +16,11 @@ _settings = get_settings()
 
 _connect_args = {"check_same_thread": False} if _settings.database_url.startswith("sqlite") else {}
 
-engine = create_engine(_settings.database_url, connect_args=_connect_args, future=True)
+# Serverless Postgres (Neon, Supabase pooler) closes idle connections; without
+# pre-ping the first request after idle would fail with a dead connection.
+_pool_args = {} if _settings.database_url.startswith("sqlite") else {"pool_pre_ping": True, "pool_recycle": 300}
+
+engine = create_engine(_settings.database_url, connect_args=_connect_args, future=True, **_pool_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 

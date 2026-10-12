@@ -70,6 +70,11 @@ function tuneBasemapPalette(map: MaplibreMap) {
   });
 }
 
+// Basemap style. Defaults to CARTO's public dark style (third-party, subject to
+// its terms and availability); set NEXT_PUBLIC_MAP_STYLE_URL to a self-hosted
+// or licensed MapLibre style for production.
+const DEFAULT_MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+
 export default function MapView({
   resources,
   recommendations,
@@ -90,7 +95,7 @@ export default function MapView({
     if (!containerRef.current) return;
     const map = new MaplibreMap({
       container: containerRef.current,
-      style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+      style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || DEFAULT_MAP_STYLE,
       center: [80.2707, 13.0827],
       zoom: 10,
       pitch: 0,

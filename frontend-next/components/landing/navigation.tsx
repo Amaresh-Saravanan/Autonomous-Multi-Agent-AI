@@ -10,6 +10,7 @@ const navLinks = [
   { name: "How It Works", href: "#how-it-works" },
   { name: "Documentation", href: "#documentation" },
   { name: "About", href: "#about" },
+  { name: "Citizen Help", href: "/citizen" },
 ];
 
 export function Navigation() {

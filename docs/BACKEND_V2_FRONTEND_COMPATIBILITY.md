@@ -1,5 +1,24 @@
 # Backend V2 ↔ Frontend Compatibility (Phase 25)
 
+> **Update 2026-10-12:** every row marked DEFERRED below is now implemented.
+> The frontend talks to V2 only (`NEXT_PUBLIC_API_BASE`, default `:8001`) and
+> adapts V2 response shapes in one place, `frontend-next/lib/api.ts`
+> (`toRecommendation`, `toIncidentSummary`, `toAuditEntry`, …). New V2
+> endpoints: `GET /api/v1/auth/me`, `GET /api/v1/incidents/{id}/state`,
+> `GET /api/v1/incidents/{id}/severity`, `GET /api/v1/citizen/reports`,
+> `GET /api/v1/metrics`, `GET /api/v1/agents/health`. Citizen chat/reports and
+> the demo sensor go through same-origin Next routes (`app/api/*`) that hold
+> device credentials server-side. Field mapping: `id→rec_id`,
+> `reasoning→rationale`, `status` lower-cased, JWT role lower-cased.
+
+> **Update (round 3):** `GET /api/v1/incidents/{id}/forecast` (DS-2, labelled
+> heuristic); `POST /api/v1/auth/change-password`; `GET|POST /api/v1/access/*`
+> (admin queue; the two public submit endpoints need the citizen device
+> credential and are reached via `app/api/access-request` / `reset-request`).
+> `TokenResponse`/`MeResponse` gain `must_change_password`; every other
+> endpoint returns 403 `password_change_required` until it is changed.
+> `ChatResponse` gains `language_fallback`. `resources.ambulances` is now real.
+
 Source: `frontend-next/lib/api.ts` + `frontend-next/lib/operations-context.tsx`
 against `backend/app/main.py` (V1) and `backend-v2/app/api/*.py` (V2).
 "Frontend change" column marks what was actually edited in this pass;

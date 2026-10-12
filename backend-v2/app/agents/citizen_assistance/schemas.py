@@ -10,6 +10,9 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     reply: str
-    language: str
+    language: str  # language the reply is actually written in
     reasoning_mode: str  # "llm" | "retrieval_fallback" | "unavailable"
     sources: list[str]
+    # True when the reply is NOT in the language the citizen asked for (no
+    # translation available and no LLM): the UI must say so.
+    language_fallback: bool = False

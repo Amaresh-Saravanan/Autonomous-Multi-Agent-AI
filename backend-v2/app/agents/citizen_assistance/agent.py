@@ -10,6 +10,7 @@ import re
 from collections import Counter
 from typing import Protocol
 
+from app.agents.citizen_assistance import i18n
 from app.agents.citizen_assistance.schemas import ChatRequest, ChatResponse
 from app.infrastructure.llm import LLMService
 
@@ -100,10 +101,21 @@ class KeywordRetriever:
 class CitizenAssistant:
     def __init__(self, retriever: Retriever | None = None, llm: LLMService | None = None):
         self._retriever = retriever or KeywordRetriever()
+        self._localized = i18n.LocalizedRetriever()
         self._llm = llm
 
+    def _retrieve(self, query: str, language: str) -> tuple[list[dict], str]:
+        """Returns (docs, language the docs are written in). Tries the
+        citizen's language first (hi/ta have translated corpora), then
+        English — a citizen may type English while the UI is set to Hindi."""
+        if language in i18n.SUPPORTED:
+            docs = self._localized.retrieve(query, language, k=2)
+            if docs:
+                return docs, language
+        return self._retriever.retrieve(query, k=2), "en"
+
     def chat(self, request: ChatRequest) -> ChatResponse:
-        retrieved = self._retriever.retrieve(request.message, k=2)
+        retrieved, doc_lang = self._retrieve(request.message, request.language)
 
         if self._llm is not None:
             context = "\n".join(f"- {d['text']}" for d in retrieved)
@@ -122,11 +134,18 @@ class CitizenAssistant:
                 )
 
         if not retrieved:
-            return ChatResponse(reply=NOT_AVAILABLE_MSG, language=request.language, reasoning_mode="unavailable", sources=[])
+            lang = request.language if request.language in i18n.SUPPORTED else "en"
+            reply = i18n.NOT_AVAILABLE[lang] if lang != "en" else NOT_AVAILABLE_MSG
+            return ChatResponse(
+                reply=reply, language=lang, reasoning_mode="unavailable", sources=[],
+                language_fallback=lang != request.language,
+            )
 
+        # Docs may be English even when another language was requested; say so.
         return ChatResponse(
             reply=retrieved[0]["text"],
-            language=request.language,
+            language=doc_lang,
             reasoning_mode="retrieval_fallback",
             sources=[retrieved[0]["id"]],
+            language_fallback=doc_lang != request.language,
         )

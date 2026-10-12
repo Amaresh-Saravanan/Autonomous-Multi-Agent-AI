@@ -44,7 +44,7 @@ interface OperationsDataValue {
 const OperationsDataContext = createContext<OperationsDataValue | null>(null);
 
 export function OperationsDataProvider({ children }: { children: ReactNode }) {
-  const { token, user } = useAuth();
+  const { token, user, logout } = useAuth();
   const [resources, setResources] = useState<ResourcesResponse | null>(null);
   const [recsById, setRecsById] = useState<Map<string, Recommendation>>(new Map());
   const [severityGeojson, setSeverityGeojson] = useState<GeoJSON.FeatureCollection | null>(null);
@@ -104,40 +104,58 @@ export function OperationsDataProvider({ children }: { children: ReactNode }) {
     refreshCitizenReports().catch(console.error);
     const citizenPoll = setInterval(() => {
       refreshCitizenReports().catch(console.error);
-    }, 5000);
+    }, 15000);
 
     let ws: WebSocket;
     let closedByUs = false;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
     function connect() {
       // V2: /ws/alerts requires the same JWT issued at login — the browser
       // can't set a custom Authorization header on a WS handshake, so the
       // token travels as a query param instead.
       ws = new WebSocket(
-        `${API_BASE.replace("http", "ws")}/ws/alerts?token=${encodeURIComponent(activeToken)}`
+        `${API_BASE.replace(/^http/, "ws")}/ws/alerts?token=${encodeURIComponent(activeToken)}`
       );
       ws.onopen = () => setWsStatus("live");
-      ws.onclose = () => {
+      ws.onclose = (evt) => {
+        if (closedByUs) return;
+        // 4401 = the backend rejected our token (expired/revoked): sign out
+        // instead of reconnecting forever with a dead credential.
+        if (evt.code === 4401) {
+          logout();
+          return;
+        }
         setWsStatus("reconnecting…");
-        if (!closedByUs) setTimeout(connect, 2000);
+        retryTimer = setTimeout(connect, 2000);
       };
       ws.onmessage = (evt) => {
-        const msg: WsAlertsMessage = JSON.parse(evt.data);
-        refreshRecommendations();
+        let msg: WsAlertsMessage;
+        try {
+          msg = JSON.parse(evt.data);
+        } catch {
+          return; // ignore malformed frames rather than killing the socket handler
+        }
         currentIncidentRef.current = msg.incident_id;
-        refreshSeverity(msg.incident_id);
-        refreshIncidentState(msg.incident_id);
-        refreshCitizenReports();
+        // One failing refresh must not block the others.
+        void Promise.allSettled([
+          refreshRecommendations(),
+          refreshSeverity(msg.incident_id),
+          refreshIncidentState(msg.incident_id),
+          refreshCitizenReports(),
+        ]);
       };
     }
     connect();
     return () => {
       closedByUs = true;
+      clearTimeout(retryTimer);
       ws?.close();
       clearInterval(citizenPoll);
     };
   }, [
     user,
     token,
+    logout,
     refreshRecommendations,
     refreshSeverity,
     refreshIncidentState,

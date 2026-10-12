@@ -39,6 +39,23 @@ class Hospital(Base, UUIDPkMixin, TimestampMixin):
     ambulances_free: Mapped[int] = mapped_column(Integer, default=0)
 
 
+class AmbulanceStatusEnum(str, enum.Enum):
+    AVAILABLE = "available"
+    DISPATCHED = "dispatched"
+    OFFLINE = "offline"
+
+
+class Ambulance(Base, UUIDPkMixin, TimestampMixin):
+    __tablename__ = "ambulances"
+
+    name: Mapped[str] = mapped_column(String(200))
+    agency_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("agencies.id"), index=True)
+    hospital_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), ForeignKey("hospitals.id"), nullable=True)
+    latitude: Mapped[float] = mapped_column(Float)
+    longitude: Mapped[float] = mapped_column(Float)
+    status: Mapped[AmbulanceStatusEnum] = mapped_column(enum_column(AmbulanceStatusEnum), default=AmbulanceStatusEnum.AVAILABLE)
+
+
 class RescueTeam(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "rescue_teams"
 

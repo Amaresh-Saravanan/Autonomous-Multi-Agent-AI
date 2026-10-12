@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Index, String, Text, Uuid
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, JSON, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDPkMixin, enum_column
@@ -32,6 +32,16 @@ class Recommendation(Base, UUIDPkMixin, TimestampMixin):
     priority: Mapped[str] = mapped_column(String(20))
     confidence: Mapped[float] = mapped_column(Float)
     reasoning: Mapped[str] = mapped_column(Text)
+    # Console fields (PRD DS-7 / UI-2): numeric severity for alert thresholds,
+    # the cited evidence ids, and the agent's structured details (resources,
+    # destination, blocked flag) so the UI never has to guess them.
+    severity: Mapped[float] = mapped_column(Float, default=0.0, server_default="0")
+    evidence_json: Mapped[list] = mapped_column(JSON, default=list)
+    details_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    # Explicit "visible to every agency" flag for incident-wide outputs
+    # (AG-1/2/8). NULL target_agency_id still means NOT global — the V1
+    # "NULL leaks to everyone" bug stays fixed.
+    is_global: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Phase 17: NULL target_agency must NOT mean "visible to every agency" —
     # query filters require an explicit agency match, enforced in the service layer.
     target_agency_id: Mapped[uuid.UUID | None] = mapped_column(

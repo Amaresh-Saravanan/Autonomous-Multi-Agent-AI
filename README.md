@@ -39,6 +39,11 @@ as `/command`, `/map`, `/alerts`, `/incidents`, `/recommendations`, `/resources`
 current app still connects to `localhost:8000`; log in with a seed user from
 `docs/RUNBOOK.md`.
 
+## Deploy it
+
+Production uses `backend-v2/` + `frontend-next/` — see `docs/DEPLOYMENT.md`
+(Docker Compose in `deploy/`, env templates, first-run `python -m app.seed`).
+
 ## Test it
 
 ```bash

@@ -172,3 +172,28 @@ def test_ag8_summarizes_blackboard_without_citing_itself():
     assert "AG-8" not in result.evidence
     assert set(result.evidence) == {"AG-1", "AG-5"}
     assert result.recommendations[0]["severity"] == 0.9
+
+
+def test_ag7_answers_in_hindi_and_tamil_without_llm():
+    assistant = CitizenAssistant()
+    hi = assistant.chat(ChatRequest(message="पानी बढ़ रहा है, क्या करूँ?", language="hi"))
+    assert hi.reasoning_mode == "retrieval_fallback" and hi.language == "hi" and not hi.language_fallback
+    assert hi.sources == ["flood-evacuate"] and "ऊँची जगह" in hi.reply
+    ta = assistant.chat(ChatRequest(message="வெள்ளம் வருகிறது என்ன செய்வது", language="ta"))
+    assert ta.language == "ta" and ta.sources == ["flood-evacuate"] and not ta.language_fallback
+    bleeding = assistant.chat(ChatRequest(message="बहुत खून बह रहा है", language="hi"))
+    assert bleeding.sources == ["first-aid-bleeding"]
+
+
+def test_ag7_localized_unavailable_and_honest_language_fallback():
+    assistant = CitizenAssistant()
+    none_hi = assistant.chat(ChatRequest(message="अरे ब्ला ब्ला", language="hi"))
+    assert none_hi.reasoning_mode == "unavailable" and none_hi.language == "hi" and "उपलब्ध नहीं" in none_hi.reply
+    # English typed while UI is Hindi -> English answer, flagged as fallback.
+    mixed = assistant.chat(ChatRequest(message="the water is rising", language="hi"))
+    assert mixed.language == "en" and mixed.language_fallback
+    # Telugu has no corpus and no LLM: English reply, flagged.
+    te = assistant.chat(ChatRequest(message="the water is rising", language="te"))
+    assert te.language == "en" and te.language_fallback
+    te_none = assistant.chat(ChatRequest(message="xyzzy qwerty", language="te"))
+    assert te_none.reasoning_mode == "unavailable" and te_none.language_fallback

@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useOperationsData } from "@/lib/operations-context";
-import { fetchMetrics } from "@/lib/api";
+import { fetchAgentHealth, fetchMetrics } from "@/lib/api";
 import { agentEntries } from "@/lib/incident-format";
-import type { MetricsSummary } from "@/lib/types";
+import type { AgentHealth, MetricsSummary } from "@/lib/types";
 
 const AGENT_NAMES: Record<string, string> = {
   "AG-1": "Disaster Assessment",
@@ -29,14 +29,31 @@ const ALL_AGENTS = Object.keys(AGENT_NAMES);
 export default function AgentsPage() {
   const { token } = useAuth();
   const { incidentState } = useOperationsData();
+  const { user } = useAuth();
   const [metrics, setMetrics] = useState<MetricsSummary | null>(null);
+  const [health, setHealth] = useState<Map<string, AgentHealth>>(new Map());
 
   useEffect(() => {
-    fetchMetrics(token).then(setMetrics).catch(console.error);
-  }, [token]);
+    // Metrics are operator+; viewers still get per-agent health.
+    if (user?.role !== "viewer") fetchMetrics(token).then(setMetrics).catch(console.error);
+    fetchAgentHealth(token)
+      .then((rows) => setHealth(new Map(rows.map((h) => [h.agent_id, h]))))
+      .catch(console.error);
+  }, [token, user?.role]);
 
   const outputs = new Map(agentEntries(incidentState));
-  const ingestLatency = metrics?.routes["/ingest/{source_type}"];
+  // Aggregate every /api/v1/ingestion/* route into one orchestration-intake figure.
+  const ingestRoutes = Object.entries(metrics?.routes ?? {}).filter(([path]) =>
+    path.startsWith("/api/v1/ingestion/")
+  );
+  const ingestCount = ingestRoutes.reduce((n, [, r]) => n + r.count, 0);
+  const ingestLatency = ingestCount
+    ? {
+        count: ingestCount,
+        avg_latency_ms: ingestRoutes.reduce((n, [, r]) => n + r.avg_latency_ms * r.count, 0) / ingestCount,
+        p95_latency_ms: Math.max(...ingestRoutes.map(([, r]) => r.p95_latency_ms)),
+      }
+    : undefined;
 
   return (
     <div className="h-full overflow-y-auto p-console-lg">
@@ -45,7 +62,7 @@ export default function AgentsPage() {
       </h1>
       {ingestLatency && (
         <div className="mb-console-lg font-console-data-tabular text-console-data-tabular text-console-on-surface-variant">
-          Orchestration latency: avg {ingestLatency.avg_latency_ms.toFixed(0)}ms · p95{" "}
+          Ingestion latency: avg {ingestLatency.avg_latency_ms.toFixed(0)}ms · p95{" "}
           {ingestLatency.p95_latency_ms.toFixed(0)}ms ({ingestLatency.count} runs)
         </div>
       )}
@@ -53,6 +70,11 @@ export default function AgentsPage() {
       <div className="grid grid-cols-1 gap-console-md md:grid-cols-2 lg:grid-cols-4">
         {ALL_AGENTS.map((agentId) => {
           const rec = outputs.get(agentId);
+          const h = health.get(agentId);
+          // DEGRADED = ran on its rule-based fallback (e.g. no LLM key);
+          // "degraded" is reserved for repeated real failures.
+          const fallback = h?.status === "DEGRADED";
+          const statusLabel = h?.degraded_mode && !fallback ? "degraded" : fallback ? "rule-based" : rec || h ? "active" : "idle";
           return (
             <div
               key={agentId}
@@ -64,10 +86,14 @@ export default function AgentsPage() {
                 </span>
                 <span
                   className={`font-console-label-caps text-[9px] font-bold uppercase ${
-                    rec ? "text-[var(--sev-low)]" : "text-console-outline"
+                    h?.degraded_mode && !fallback
+                      ? "text-[var(--sev-high)]"
+                      : rec || h
+                        ? "text-[var(--sev-low)]"
+                        : "text-console-outline"
                   }`}
                 >
-                  {rec ? "active" : "idle"}
+                  {statusLabel}
                 </span>
               </div>
               <div className="mt-1 font-console-body-sm text-console-body-sm text-console-on-surface-variant">
@@ -79,8 +105,14 @@ export default function AgentsPage() {
                     {rec.rationale}
                   </p>
                   <p className="mt-2 font-console-data-tabular text-[10px] text-console-outline">
-                    confidence {rec.confidence.toFixed(2)} · {rec.created_at}
+                    confidence {rec.confidence.toFixed(2)}
+                    {h?.last_run ? ` · last run ${h.last_run}` : ""}
                   </p>
+                  {h?.last_error && !fallback && (
+                    <p className="mt-1 font-console-data-tabular text-[10px] text-[var(--sev-high)]">
+                      {h.failure_count} failures · {h.last_error}
+                    </p>
+                  )}
                 </>
               ) : (
                 <p className="mt-2 font-console-body-sm text-[11px] text-console-outline">

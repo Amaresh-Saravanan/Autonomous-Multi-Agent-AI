@@ -102,6 +102,9 @@ class IngestionService:
                 latitude=normalized["latitude"],
                 longitude=normalized["longitude"],
                 verification_score=confidence,
+                claimed_severity=data.claimed_severity,
+                flagged_for_review=flagged,
+                event_id=event.id,
                 source="app",
             )
         )

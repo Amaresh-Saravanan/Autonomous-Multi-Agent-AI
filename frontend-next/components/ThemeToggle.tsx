@@ -16,6 +16,7 @@ export default function ThemeToggle() {
   // has already applied it to <html>; this just syncs React state to it).
   useEffect(() => {
     const stored = (localStorage.getItem("theme") as Theme) || "dark";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(stored);
   }, []);
 

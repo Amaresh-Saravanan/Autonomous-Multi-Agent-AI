@@ -26,7 +26,7 @@ const securityFeatures = [
   },
 ];
 
-const certifications = ["RBAC", "Audit Logs", "Explainable", "Reversible", "SOC 2"];
+const certifications = ["RBAC", "Audit Logs", "Explainable", "Human approval"];
 
 export function SecuritySection() {
   const [isVisible, setIsVisible] = useState(false);

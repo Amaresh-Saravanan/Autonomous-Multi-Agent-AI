@@ -3,7 +3,7 @@
 import enum
 import uuid
 
-from sqlalchemy import ForeignKey, Index, String, Text, Uuid
+from sqlalchemy import Boolean, ForeignKey, Index, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDPkMixin, enum_column
@@ -35,5 +35,6 @@ class Alert(Base, UUIDPkMixin, TimestampMixin):
     target_agency_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid(as_uuid=True), ForeignKey("agencies.id"), nullable=True
     )
+    is_global: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     dedup_key: Mapped[str] = mapped_column(String(300))
     status: Mapped[AlertStatusEnum] = mapped_column(enum_column(AlertStatusEnum), default=AlertStatusEnum.PUBLISHED)

@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.access import router as access_router
 from app.api.alerts import router as alerts_router
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
@@ -12,6 +13,7 @@ from app.api.citizen import router as citizen_router
 from app.api.health import router as health_router
 from app.api.incidents import router as incidents_router
 from app.api.ingestion import router as ingestion_router
+from app.api.metrics import router as metrics_router
 from app.api.recommendations import router as recommendations_router
 from app.api.resources import router as resources_router
 from app.api.websocket import router as websocket_router
@@ -52,6 +54,7 @@ app.add_middleware(
 
 register_exception_handlers(app)
 app.include_router(auth_router)
+app.include_router(access_router)
 app.include_router(health_router)
 app.include_router(ingestion_router)
 app.include_router(websocket_router)
@@ -61,6 +64,7 @@ app.include_router(citizen_router)
 app.include_router(alerts_router)
 app.include_router(resources_router)
 app.include_router(audit_router)
+app.include_router(metrics_router)
 
 
 @app.middleware("http")

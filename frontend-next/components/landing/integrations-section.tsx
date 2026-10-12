@@ -3,18 +3,16 @@
 import { useEffect, useState, useRef } from "react";
 
 const integrations = [
-  { name: "Sensor Networks", category: "IoT Ingestion" },
-  { name: "Satellite imagery", category: "Earth Observation" },
-  { name: "NOAA Weather", category: "Meteorological" },
-  { name: "USGS Seismic", category: "Geological" },
-  { name: "FEMA Alerts", category: "Government" },
-  { name: "Citizen Reports", category: "Crowdsourced" },
-  { name: "Social Media", category: "Public Signals" },
-  { name: "GIS / Shapefiles", category: "Geospatial" },
-  { name: "Redis Streams", category: "Event Bus" },
+  { name: "IoT sensors", category: "Ingestion API" },
+  { name: "Weather feeds", category: "Ingestion API" },
+  { name: "Satellite imagery", category: "Ingestion API" },
+  { name: "Citizen reports", category: "Ingestion API" },
+  { name: "Device credentials", category: "Per-source auth" },
+  { name: "Redis", category: "Blackboard + pub/sub" },
   { name: "PostgreSQL", category: "Persistence" },
-  { name: "Groq LLM", category: "AI Reasoning" },
-  { name: "WebSocket", category: "Real-time Push" },
+  { name: "LLM reasoning", category: "Optional (Groq)" },
+  { name: "WebSocket", category: "Real-time push" },
+  { name: "Prometheus", category: "Metrics" },
 ];
 
 export function IntegrationsSection() {
@@ -53,7 +51,7 @@ export function IntegrationsSection() {
             every source.
           </h2>
           <p className="text-xl text-muted-foreground">
-            Sensor feeds, satellite imagery, weather APIs, and citizen reports — all normalized into one stream.
+            Sensor, satellite, weather and citizen inputs arrive through authenticated ingestion endpoints and are normalized into one event stream.
           </p>
         </div>
 

@@ -102,9 +102,9 @@ and are coordinated by an **Orchestrator**.
 | UI-3 | Alerts panel | P0 |
 | UI-4 | Citizen report inbox with verification status | P1 |
 | UI-5 | Multi-agency role-based views | P1 |
-| UI-6 | Citizen-facing chat interface (multilingual) | P1 |
+| UI-6 | Citizen-facing chat interface (multilingual) — public `/citizen` page, plus incident reporting (trust-scored, SEC-4) | P1 |
 | UI-7 | Public landing page that explains the platform and routes users to login/signup | P1 |
-| UI-8 | Dedicated login/signup/recovery pages instead of an in-dashboard login overlay | P0 |
+| UI-8 | Dedicated login/signup/recovery pages instead of an in-dashboard login overlay. Accounts are admin-provisioned (SEC-1), so `/signup` and `/forgot-password` queue an access/reset request that an ADMIN approves (issuing a one-time temporary password and forcing a change at first sign-in); no self-service account creation in v1 | P0 |
 | UI-9 | Authenticated operations-console shell with sidebar/topbar navigation | P0 |
 | UI-10 | Dedicated product-area pages for command, map, alerts, incidents, recommendations, resources, routes, medical, citizen reports, agents, audit, and settings | P0 |
 | UI-11 | Full operational map page separate from the command overview | P0 |

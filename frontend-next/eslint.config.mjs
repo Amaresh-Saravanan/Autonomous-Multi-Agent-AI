@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored maplibre worker bundles (see README) — minified, not our code.
+    "public/**",
   ]),
 ]);
 

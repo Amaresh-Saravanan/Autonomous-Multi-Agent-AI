@@ -14,7 +14,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 export default function LoginPage() {
   const { user, login, loginError } = useAuth();
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -25,7 +25,7 @@ export default function LoginPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    await login(username, password);
+    await login(email, password);
     setSubmitting(false);
   }
 
@@ -71,18 +71,20 @@ export default function LoginPage() {
         <div className="glass-panel w-full max-w-sm p-8">
           <h2 className="text-lg font-semibold text-(--text-primary)">Sign in</h2>
           <p className="mt-1 text-xs text-(--text-muted)">
-            Enter your command center credentials.
+            Sign in with your command center email.
           </p>
           <div className="mt-4 min-h-4 text-xs text-(--sev-critical)">
             {loginError}
           </div>
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <label className="flex w-full flex-col gap-1 text-xs text-(--text-muted)">
-              Username
+              Email
               <input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                required
+                autoComplete="email"
                 autoFocus
                 className="w-full rounded-md border border-(--border) bg-white/5 px-2.5 py-2 text-sm text-(--text-primary)"
               />
@@ -93,6 +95,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
+                required
                 autoComplete="current-password"
                 className="w-full rounded-md border border-(--border) bg-white/5 px-2.5 py-2 text-sm text-(--text-primary)"
               />
@@ -105,12 +108,14 @@ export default function LoginPage() {
               {submitting ? "Signing in…" : "Log in"}
             </button>
           </form>
-          <p className="mt-5 text-center text-xs text-(--text-muted)">
-            New agency?{" "}
-            <span className="text-(--text-primary)">
-              Contact your administrator for access.
-            </span>
-          </p>
+          <div className="mt-5 flex justify-between text-xs text-(--text-muted)">
+            <Link href="/signup" className="hover:text-(--text-primary)">
+              Request access
+            </Link>
+            <Link href="/forgot-password" className="hover:text-(--text-primary)">
+              Forgot password?
+            </Link>
+          </div>
           <Link
             href="/"
             className="mt-3 block text-center text-xs text-(--text-muted) hover:text-(--text-primary)"
