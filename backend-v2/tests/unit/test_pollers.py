@@ -63,7 +63,7 @@ def test_usgs_in_bbox():
 def test_gdacs_build_event_filters_green_alert_level():
     feature = {
         "properties": {"alertlevel": "Green", "eventtype": "TC", "eventid": 1, "episodeid": 1, "name": "x"},
-        "geometry": {"coordinates": [-65.8, 40.0]},
+        "geometry": {"type": "Point", "coordinates": [-65.8, 40.0]},
     }
     assert gdacs.build_event(feature) is None
 
@@ -78,7 +78,7 @@ def test_gdacs_build_event_maps_orange_and_red():
             "name": "Tropical Cyclone JOSEPHINE-26",
             "severitydata": {"severitytext": "Tropical Storm (maximum wind speed of 120 km/h)"},
         },
-        "geometry": {"coordinates": [-65.8, 40.0]},
+        "geometry": {"type": "Point", "coordinates": [-65.8, 40.0]},
     }
     result = gdacs.build_event(feature)
     assert result is not None

@@ -46,10 +46,17 @@ def build_event(feature: dict) -> tuple[WeatherEvent, str] | None:
     if alert_level not in ALLOWED_ALERT_LEVELS:
         return None
 
-    coords = (feature.get("geometry") or {}).get("coordinates")
-    if not coords or len(coords) < 2:
+    geometry = feature.get("geometry") or {}
+    coords = geometry.get("coordinates")
+    # Some GDACS features (e.g. a cyclone's track) are Polygon/LineString,
+    # where `coordinates` is nested lists, not a flat [lon, lat] -- skip
+    # rather than guess a centroid, consistent with never fabricating a
+    # location for an area this codebase doesn't actually have.
+    if geometry.get("type") != "Point" or not coords or len(coords) < 2:
         return None
     lon, lat = coords[0], coords[1]
+    if not isinstance(lon, (int, float)) or not isinstance(lat, (int, float)):
+        return None
 
     # GDACS mixes units across hazard types (km/h for cyclone wind, m for
     # flood depth, VEI for volcanoes) -- folded into `alert` text, never
@@ -79,19 +86,22 @@ def poll(*, client: httpx.Client, ingest, dedup) -> PollResult:
 
         any_success = True
         for feature in data.get("features", []):
-            built = build_event(feature)
-            if built is None:
-                continue
-            event, ext_id = built
+            try:
+                built = build_event(feature)
+                if built is None:
+                    continue
+                event, ext_id = built
 
-            fetched += 1
-            if dedup.already_seen(SOURCE, ext_id):
-                skipped += 1
-                continue
+                fetched += 1
+                if dedup.already_seen(SOURCE, ext_id):
+                    skipped += 1
+                    continue
 
-            ingest("weather", event)
-            dedup.mark_seen(SOURCE, ext_id)
-            ingested += 1
+                ingest("weather", event)
+                dedup.mark_seen(SOURCE, ext_id)
+                ingested += 1
+            except Exception as exc:
+                logger.warning("gdacs: skipping malformed feature: %s", exc)
 
     # Only surface an error if every event type failed -- a few categories
     # failing while others succeed is partial data, not a poll failure.

@@ -109,7 +109,7 @@ GDACS_TC = {
     "features": [
         {
             "properties": {"alertlevel": "Red", "eventtype": "TC", "eventid": 1, "episodeid": 1, "name": "Storm X"},
-            "geometry": {"coordinates": [80.0, 13.0]},
+            "geometry": {"type": "Point", "coordinates": [80.0, 13.0]},
         }
     ]
 }
