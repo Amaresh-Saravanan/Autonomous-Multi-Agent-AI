@@ -81,7 +81,7 @@
 }
 
 /* Kinetic Command design tokens for the authenticated console shell —
-   stitch_eoc_command_console/kinetic_command/DESIGN.md. Colors/fonts/text
+   docs/design/stitch_eoc_command_console/kinetic_command/DESIGN.md. Colors/fonts/text
    sizes are prefixed "console-" so they can't collide with the landing
    page's own @theme tokens above (both define e.g. "primary"/"background").
    Spacing keys are unprefixed: a generic 4px-grid numeric scale, not a

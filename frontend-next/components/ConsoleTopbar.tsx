@@ -22,7 +22,7 @@ function useClock() {
 // Shared shell topbar (plan Phase M, UX_DESIGN §3.2): owns global liveness
 // (WS state, critical/high counts, clock) plus user/theme controls -- merges
 // what BrandBar.tsx and WhoAmI.tsx each used to own separately on the old
-// single-page dashboard. Visual language: stitch_eoc_command_console/
+// single-page dashboard. Visual language: docs/design/stitch_eoc_command_console/
 // kinetic_command (Kinetic Command design system).
 export default function ConsoleTopbar({ onMenuClick }: { onMenuClick?: () => void } = {}) {
   const { user, logout } = useAuth();

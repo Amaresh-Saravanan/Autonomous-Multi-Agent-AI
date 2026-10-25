@@ -38,7 +38,7 @@ interface NavItem {
 // Route visibility per UX_DESIGN.md §3.4's role table. Most of these pages
 // don't exist yet (tracker 3.11.6, plan Phase Q) -- this is the nav skeleton
 // the shell (Phase M) ships with; links 404 until their page lands.
-// Visual language: stitch_eoc_command_console/kinetic_command (Kinetic
+// Visual language: docs/design/stitch_eoc_command_console/kinetic_command (Kinetic
 // Command design system). Icons use lucide-react (already a dependency)
 // as stand-ins for the mockup's Material Symbols glyphs, avoiding a second
 // icon font/webfont request.

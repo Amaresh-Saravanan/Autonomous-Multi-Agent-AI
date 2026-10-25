@@ -9,7 +9,7 @@ import ForcePasswordChange from "@/components/ForcePasswordChange";
 import ConsoleTopbar from "@/components/ConsoleTopbar";
 
 // Shared shell for every authenticated route (plan Phase M, UX_DESIGN §3.2).
-// Visual language: stitch_eoc_command_console/kinetic_command (Kinetic
+// Visual language: docs/design/stitch_eoc_command_console/kinetic_command (Kinetic
 // Command design system) -- glassmorphic dark console shell. Deliberately
 // scoped to the (console) route group, NOT app/layout.tsx (the root layout):
 // wrapping the root would apply this chrome to the public landing page and
