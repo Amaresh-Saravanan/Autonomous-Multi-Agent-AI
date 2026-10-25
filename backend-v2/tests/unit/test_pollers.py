@@ -91,9 +91,76 @@ def test_gdacs_build_event_maps_orange_and_red():
 
 
 def test_dedup_store_marks_and_detects_duplicates():
-    store = DedupStore(fakeredis.FakeStrictRedis(decode_responses=True))
+    store = DedupStore("redis", fakeredis.FakeStrictRedis(decode_responses=True))
     assert store.already_seen("usgs", "evt-1") is False
     store.mark_seen("usgs", "evt-1")
     assert store.already_seen("usgs", "evt-1") is True
     # different source, same id -- not a duplicate across sources
     assert store.already_seen("gdacs", "evt-1") is False
+
+
+def test_dedup_store_memory_mode_works_without_redis():
+    """QUEUE_BACKEND=memory local dev: no Redis client, no Redis server."""
+    store = DedupStore("memory")
+    assert store.already_seen("usgs", "evt-1") is False
+    store.mark_seen("usgs", "evt-1")
+    assert store.already_seen("usgs", "evt-1") is True
+    assert store.already_seen("gdacs", "evt-1") is False
+
+
+def test_dedup_store_memory_mode_rejects_redis_backend_without_client():
+    import pytest
+
+    from app.errors import QueueError
+
+    with pytest.raises(QueueError):
+        DedupStore("redis")
+
+
+def test_gdacs_fetch_event_type_does_not_retry_404():
+    """A 404 means this eventtype doesn't exist -- permanent, not
+    transient -- so it must fail on the first attempt, not after 3."""
+    import httpx
+
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        return httpx.Response(404, json={"message": "not found"})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+
+    try:
+        gdacs.fetch_event_type(client, "VO")
+        assert False, "expected HTTPStatusError"
+    except httpx.HTTPStatusError:
+        pass
+
+    assert call_count == 1
+
+
+def test_gdacs_fetch_event_type_retries_non_404_errors():
+    """A non-404 (e.g. 503) is transient -- still retried up to 3 attempts."""
+    import httpx
+
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        return httpx.Response(503, json={"message": "unavailable"})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+
+    try:
+        gdacs.fetch_event_type(client, "EQ")
+        assert False, "expected HTTPStatusError"
+    except httpx.HTTPStatusError:
+        pass
+
+    assert call_count == 3
+
+
+def test_gdacs_event_types_excludes_vo():
+    assert "VO" not in gdacs.EVENT_TYPES

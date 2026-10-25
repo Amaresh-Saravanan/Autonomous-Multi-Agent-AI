@@ -4,10 +4,12 @@
 GDACS hazard category and merges the results. Only Orange/Red alert-level
 events are kept; Green is the common case and not actionable here.
 
-# ponytail: EVENT_TYPES is GDACS's own fixed hazard-category set
-(earthquake, tropical cyclone, flood, volcano, drought, wildfire),
-hardcoded because the API has no "list valid eventtypes" endpoint to
-query it from. Add a category here if GDACS introduces a new one.
+# ponytail: EVENT_TYPES is GDACS's own hazard-category set (earthquake,
+tropical cyclone, flood, drought, wildfire), hardcoded because the API
+has no "list valid eventtypes" endpoint to query it from. VO (volcano) is
+deliberately excluded: confirmed live that the endpoint 404s for it every
+time (not a transient failure), so it's not worth polling or retrying.
+Add it back if GDACS ever starts serving that eventtype.
 
 Mapped to the `weather` normalizer, not `satellite`: GDACS gives a point
 location (not an imagery tile), and SatelliteEvent requires real
@@ -20,7 +22,8 @@ fits the actual shape of what GDACS reports: a point plus an alert.
 import logging
 
 import httpx
-from tenacity import retry, stop_after_attempt, wait_fixed
+from redis.exceptions import RedisError
+from tenacity import retry, retry_if_exception, stop_after_attempt, wait_fixed
 
 from app.ingestion.pollers.results import PollResult
 from app.ingestion.schemas import WeatherEvent
@@ -29,11 +32,20 @@ logger = logging.getLogger("app.pollers")
 
 SOURCE = "gdacs"
 EVENT_LIST_URL = "https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP"
-EVENT_TYPES = ["EQ", "TC", "FL", "VO", "DR", "WF"]
+EVENT_TYPES = ["EQ", "TC", "FL", "DR", "WF"]
 ALLOWED_ALERT_LEVELS = {"orange", "red"}
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(1), reraise=True)
+def _is_retryable(exc: BaseException) -> bool:
+    """A 404 means this eventtype doesn't exist on the endpoint -- a
+    permanent condition, not a transient one. Retrying it three times just
+    burns 2 seconds for the same answer; let it fail immediately."""
+    if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code == 404:
+        return False
+    return True
+
+
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(1), retry=retry_if_exception(_is_retryable), reraise=True)
 def fetch_event_type(client: httpx.Client, event_type: str) -> dict:
     resp = client.get(EVENT_LIST_URL, params={"eventtype": event_type}, timeout=10.0)
     resp.raise_for_status()
@@ -100,6 +112,14 @@ def poll(*, client: httpx.Client, ingest, dedup) -> PollResult:
                 ingest("weather", event)
                 dedup.mark_seen(SOURCE, ext_id)
                 ingested += 1
+            except RedisError as exc:
+                # An unreachable dedup store is an infrastructure problem,
+                # not a bad GDACS record -- don't mislabel it as a
+                # malformed feature and keep limping through the batch on
+                # a broken connection. Let it propagate: runner.run_once
+                # catches it and records the whole gdacs poll as failed.
+                logger.error("gdacs: dedup store unreachable (infrastructure error): %s", exc)
+                raise
             except Exception as exc:
                 logger.warning("gdacs: skipping malformed feature: %s", exc)
 

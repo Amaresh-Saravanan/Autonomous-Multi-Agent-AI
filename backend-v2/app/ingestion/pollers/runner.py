@@ -98,11 +98,12 @@ def get_default_runner() -> PollerRunner:
     """Real-infra singleton: used by both the background thread and the
     manual-trigger/status endpoints, so they share one status store."""
     settings = get_settings()
+    redis_client = get_redis_client() if settings.queue_backend == "redis" else None
     return PollerRunner(
         session_factory=session_scope,
         queue=get_queue_service(),
         blackboard=get_blackboard_service(),
-        dedup=DedupStore(get_redis_client()),
+        dedup=DedupStore(settings.queue_backend, redis_client),
         http_client=httpx.Client(timeout=10.0),
         points=settings.poller_points_list,
         bbox=settings.poller_bbox_tuple,

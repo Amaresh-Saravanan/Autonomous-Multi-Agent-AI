@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 
 import fakeredis
 import httpx
+from redis.exceptions import ConnectionError as RedisConnectionError
 
 from app.infrastructure.queue import QueueService
 from app.ingestion.pollers import usgs
@@ -27,7 +28,7 @@ def _runner(db, client, **overrides):
         session_factory=lambda: _fixed_session(db),
         queue=QueueService("memory"),
         blackboard=BlackboardService(fakeredis.FakeStrictRedis(decode_responses=True)),
-        dedup=DedupStore(fakeredis.FakeStrictRedis(decode_responses=True)),
+        dedup=DedupStore("redis", fakeredis.FakeStrictRedis(decode_responses=True)),
         http_client=client,
         points=[("TestPoint", 10.0, 20.0)],
         bbox=(68.0, 6.0, 98.0, 38.0),
@@ -155,3 +156,26 @@ def test_run_once_isolates_failure_from_other_sources(db, monkeypatch):
     other_result = other_runner.run_once("gdacs")
     assert other_result.error is None
     assert other_result.ingested == 1
+
+
+class _BrokenDedup:
+    """Always-unreachable dedup store, to prove a Redis error is reported
+    as an infrastructure failure, not swallowed as a malformed feature."""
+
+    def already_seen(self, source, external_id):
+        raise RedisConnectionError("Redis is down")
+
+    def mark_seen(self, source, external_id):
+        raise RedisConnectionError("Redis is down")
+
+
+def test_gdacs_redis_error_is_not_mislabeled_as_malformed_feature(db):
+    client = httpx.Client(transport=httpx.MockTransport(_gdacs_handler))
+    runner = _runner(db, client, dedup=_BrokenDedup())
+
+    result = runner.run_once("gdacs")
+
+    assert result.error is not None
+    assert "Redis is down" in result.error
+    assert "malformed feature" not in result.error
+    assert "Redis is down" in runner.status.get("gdacs").last_error
