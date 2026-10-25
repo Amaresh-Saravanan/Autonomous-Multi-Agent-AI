@@ -1,8 +1,8 @@
 # Deployment
 
 Target: **backend-v2** (FastAPI + Postgres/PostGIS + Redis) and **frontend-next**
-(Next.js). `backend/` (V1) and `optimus-the-ai-platform-to-build-and-ship/` /
-`stitch_eoc_command_console/` (design references) are not deployed.
+(Next.js). `backend/` (V1) is kept as a legacy reference and is not deployed.
+Design references live in `docs/design/`.
 
 ## Quick path (Docker Compose)
 
