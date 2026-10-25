@@ -2,7 +2,7 @@
 population-density heuristic — NOT imagery-based damage detection. Every
 result says so explicitly in `reasoning` and `metadata["method"]`; real
 computer-vision damage assessment is DEFERRED (see
-docs/BACKEND_V2_MIGRATION.md)."""
+docs/archive/BACKEND_V2_MIGRATION.md)."""
 
 import math
 

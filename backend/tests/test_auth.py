@@ -127,7 +127,7 @@ def test_viewer_token_cannot_approve():
 def test_operator_token_can_view_recommendations():
     """Role hierarchy: operator is higher-privilege than viewer, so an
     operator token must satisfy a viewer+ check (was 403 before the
-    require_role rank-map fix; see docs/superpowers/specs/2026-08-13-rbac-design.md)."""
+    require_role rank-map fix; see docs/archive/superpowers/specs/2026-08-13-rbac-design.md)."""
     r = client.get("/recommendations", headers=_auth_header("bob_operator", "operator-pass"))
     assert r.status_code == 200
 

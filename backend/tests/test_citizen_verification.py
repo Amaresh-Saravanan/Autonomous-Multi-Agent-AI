@@ -2,7 +2,7 @@
 
 A citizen report is scored for trust against AG-1's current severity but
 does NOT wake any orchestrator agent (see
-docs/superpowers/specs/2026-08-13-citizen-verification-design.md).
+docs/archive/superpowers/specs/2026-08-13-citizen-verification-design.md).
 """
 import sys
 from pathlib import Path

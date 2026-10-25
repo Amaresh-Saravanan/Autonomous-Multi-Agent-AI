@@ -63,7 +63,7 @@ export function OperationsDataProvider({ children }: { children: ReactNode }) {
 
   // V2's alert payload carries only {incident_id, level, message} — the
   // recommendations themselves aren't inlined (see
-  // docs/BACKEND_V2_FRONTEND_COMPATIBILITY.md), so an alert triggers a
+  // docs/archive/BACKEND_V2_FRONTEND_COMPATIBILITY.md), so an alert triggers a
   // re-fetch instead of a direct merge.
   const refreshRecommendations = useCallback(async () => {
     const recs = await fetchRecommendations(token);

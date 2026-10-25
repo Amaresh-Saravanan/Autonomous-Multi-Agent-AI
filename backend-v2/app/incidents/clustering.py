@@ -3,7 +3,7 @@ no network call on the hot path. V1 problem #5 was a hidden Nominatim
 reverse-geocode call blocking ingestion in-request; V2 drops that
 dependency from the clustering decision entirely (district enrichment, if
 ever added, is a separate background step — DEFERRED, see
-docs/BACKEND_V2_MIGRATION.md). Swappable for a PostGIS `ST_DWithin` query
+docs/archive/BACKEND_V2_MIGRATION.md). Swappable for a PostGIS `ST_DWithin` query
 later without changing the call site."""
 
 from datetime import datetime, timedelta, timezone

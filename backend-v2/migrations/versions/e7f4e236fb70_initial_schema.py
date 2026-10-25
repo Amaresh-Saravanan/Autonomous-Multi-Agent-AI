@@ -339,7 +339,7 @@ def upgrade() -> None:
 # PostGIS geography columns + GiST indexes (Phase 2 "Use PostGIS types for
 # geospatial data"). Postgres-only: the ORM models stay portable lat/lon
 # floats so SQLite tests never touch a PostGIS type (see
-# docs/BACKEND_V2_MIGRATION_ANALYSIS.md section 16.6).
+# docs/archive/BACKEND_V2_MIGRATION_ANALYSIS.md section 16.6).
 _GEO_TABLES = ["incidents", "events", "shelters", "hospitals", "rescue_teams", "citizen_reports"]
 
 

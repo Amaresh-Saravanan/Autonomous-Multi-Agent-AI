@@ -1,4 +1,4 @@
-"""Alert dedup/threshold engine (tracker 2.8) — see docs/superpowers/specs/2026-08-12-alert-engine-design.md"""
+"""Alert dedup/threshold engine (tracker 2.8) — see docs/archive/superpowers/specs/2026-08-12-alert-engine-design.md"""
 from app import alerts
 
 

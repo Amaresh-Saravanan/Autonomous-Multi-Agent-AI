@@ -1,5 +1,5 @@
 """Geo helpers (ported from V1 `geo_utils.py`, consolidated per
-docs/BACKEND_V2_MIGRATION_ANALYSIS.md section 16.5: one small module instead
+docs/archive/BACKEND_V2_MIGRATION_ANALYSIS.md section 16.5: one small module instead
 of scattered geo helpers). Straight-line distance only — real road routing
 is AG-6's `RoutingService` job."""
 

@@ -2,7 +2,7 @@
 
 > **Scope:** this runbook describes the V1 backend (`backend/`, port 8000). For the deployed stack (backend-v2 + frontend-next) see `docs/DEPLOYMENT.md`; V2 users are created with `python -m app.seed`, and logins use **email**, not the V1 usernames below.
 
-How to run, log in, and operate the backend locally. Generated from the final Phase 3 state — see `docs/MIGRATION_TRACKER.md` for build history and `docs/superpowers/specs/2026-08-13-rbac-design.md` for the auth design.
+How to run, log in, and operate the backend locally. Generated from the final Phase 3 state — see `docs/archive/MIGRATION_TRACKER.md` for build history and `docs/archive/superpowers/specs/2026-08-13-rbac-design.md` for the auth design.
 
 ## Setup
 
@@ -83,5 +83,5 @@ Role hierarchy: `admin > operator > viewer` — a higher role satisfies any lowe
 - ~~`frontend/index.html` has no login flow.~~ **Resolved**: a login overlay now stores the JWT in `localStorage` and sends it as `Authorization: Bearer` on gated fetches (`/resources`, `/incidents/*`, approve/reject); verified end-to-end in a real browser (login, resource load, ingest, approve, logout, bad-credential error, session persistence across reload all confirmed working).
 - **`GET /ws/alerts` is unauthenticated**, outside the RBAC endpoint matrix — anyone can connect and receive live recommendation pushes. Deferred, not forgotten.
 - **Audit logging covers only approve/reject** (`_decide()` in `app/main.py`) — tracker 1.11 ("audit log wired to all state changes") remains open; other state-changing calls (e.g. `/ingest`) aren't individually audited yet.
-- **2.4** (real OSRM routing) and **2.10** (predictive impact) remain accepted/deferred debt from Phase 2 — see the Decisions Log in `docs/MIGRATION_TRACKER.md`.
+- **2.4** (real OSRM routing) and **2.10** (predictive impact) remain accepted/deferred debt from Phase 2 — see the Decisions Log in `docs/archive/MIGRATION_TRACKER.md`.
 - **3.7's load test found a real signal**: p95 latency ~2.25s at 50 concurrent requests against the single-process dev server, failing its own 2000ms sanity threshold — worth revisiting if this needs to be proven at the PRD's actual 10k-sensor/100-operator target.

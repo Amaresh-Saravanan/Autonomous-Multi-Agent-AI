@@ -3,7 +3,7 @@
 Roles: admin, operator, viewer (YAGNI — no finer grading than the dashboard
 currently needs; admin implicitly satisfies any role check). Users are a
 module-level seed list, same synthetic-data pattern as resources.py — no DB.
-See docs/superpowers/specs/2026-08-13-rbac-design.md for the full design.
+See docs/archive/superpowers/specs/2026-08-13-rbac-design.md for the full design.
 """
 from __future__ import annotations
 
@@ -119,7 +119,7 @@ def require_role(*roles: str):
     lowest rank among `roles` — hierarchy is admin > operator > viewer, so
     e.g. require_role("viewer") also admits operator and admin (fixes a bug
     where an operator token got 403 on viewer+ routes; see
-    docs/superpowers/specs/2026-08-13-rbac-design.md)."""
+    docs/archive/superpowers/specs/2026-08-13-rbac-design.md)."""
     min_rank = min(_ROLE_RANK[r] for r in roles)
 
     def _checker(user: dict = Depends(get_current_user)) -> dict:

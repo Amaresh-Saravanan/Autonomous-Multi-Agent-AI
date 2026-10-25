@@ -21,7 +21,7 @@ export interface Recommendation {
 
 // V2: no inline `recommendations` — the socket carries the alert only;
 // the frontend re-fetches recommendations on receipt (see
-// docs/BACKEND_V2_FRONTEND_COMPATIBILITY.md).
+// docs/archive/BACKEND_V2_FRONTEND_COMPATIBILITY.md).
 export interface WsAlertsMessage {
   alert_id: string;
   incident_id: string;

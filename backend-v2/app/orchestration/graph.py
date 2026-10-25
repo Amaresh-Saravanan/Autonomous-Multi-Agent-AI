@@ -1,7 +1,7 @@
 """LangGraph wiring (Phase 16). The graph shape is still a chain (same
 data dependency as V1), but unlike V1 each node is conditionally skipped
 by `conditions.should_run` rather than unconditionally executed — see
-`docs/BACKEND_V2_MIGRATION.md` for why this isn't the "uncontrolled
+`docs/archive/BACKEND_V2_MIGRATION.md` for why this isn't the "uncontrolled
 autonomous loop" the spec warns against: it is a bounded, acyclic,
 human-supervised chain that always terminates."""
 

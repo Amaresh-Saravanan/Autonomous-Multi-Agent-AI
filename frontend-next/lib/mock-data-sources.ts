@@ -1,6 +1,6 @@
 // ponytail: presentation-only mock telemetry generator. There is no
 // backend endpoint to list ingestion devices or replay received events
-// (see docs/MIGRATION_TRACKER.md — only POST /api/v1/ingestion/* exists,
+// (see docs/archive/MIGRATION_TRACKER.md — only POST /api/v1/ingestion/* exists,
 // write-only, device-authenticated). Swap this module for a real fetch
 // once a GET events/devices endpoint ships.
 

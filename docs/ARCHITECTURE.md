@@ -20,4 +20,4 @@ recommendations / severity grid / alerts / audit log -> Next.js console over RES
 Blackboard: in-memory, Redis if `REDIS_URL` is reachable. Recommendations, audit and
 metrics are in-memory (reset on restart) - the main blocker for horizontal scaling.
 
-See `PRD.md` (requirements), `TDD.md` (design), `MIGRATION_TRACKER.md` (status).
+See `PRD.md` (requirements), `TDD.md` (design), `archive/MIGRATION_TRACKER.md` (status).

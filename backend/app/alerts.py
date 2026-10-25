@@ -2,7 +2,7 @@
 
 Gates the /ws/alerts broadcast only — recording (blackboard, recommendations,
 severity grid) stays unconditional. See
-docs/superpowers/specs/2026-08-12-alert-engine-design.md.
+docs/archive/superpowers/specs/2026-08-12-alert-engine-design.md.
 """
 from __future__ import annotations
 
