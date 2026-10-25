@@ -1,74 +1,74 @@
 # Autonomous Multi-Agent AI Platform — Disaster Response
 
-Phase 0 vertical slice: synthetic sensor event → AG-1 (rule-based) →
-recommendation with evidence → live map, over a real HTTP + WebSocket API.
+Autonomous multi-agent disaster-response platform. Synthetic or real sensor
+events (IoT, weather, satellite, citizen reports) flow through normalizers →
+a fixed chain of 8 AI agents orchestrated with LangGraph → recommendations
+carrying mandatory evidence and rationale → a live map dashboard, over HTTP
+and WebSocket. Agents only ever recommend; a human operator approves or
+rejects every recommendation before it takes effect.
 
-Docs: `docs/PRD.md`, `docs/TDD.md`, `docs/UX_DESIGN.md`, `docs/MIGRATION_TRACKER.md`.
+The 8 agents (`backend-v2/app/agents/`), run in order on every event:
 
-## Run it (no Docker needed; Groq API key is optional)
+1. **Disaster Assessment** (AG-1) — defines the incident
+2. **Damage Assessment** (AG-2)
+3. **Rescue Planning** (AG-3)
+4. **Medical Coordination** (AG-4)
+5. **Resource Allocation** (AG-5)
+6. **Route Optimization** (AG-6)
+7. **Citizen Assistance** (AG-7) — request/response citizen chat, not part of the event chain
+8. **Situational Intelligence** (AG-8) — summarizes the whole incident, runs last
 
-**Without LLM (rule-based fallback):**
+Docs: `docs/PRD.md` (requirements), `docs/TDD.md` (architecture/stack),
+`docs/ARCHITECTURE.md`, `docs/UX_DESIGN.md` (dashboard design), `docs/RUNBOOK.md`
+(day-to-day operation). `docs/archive/` holds superseded migration-era docs
+(the backend-v2 migration write-ups, old phase trackers) kept for history.
+
+## Run it
+
+### backend-v2 (FastAPI + Postgres/PostGIS + Redis)
+
+With Docker (brings up Postgres, Redis, and the API together; the API
+container runs migrations and starts itself):
 
 ```bash
-cd backend
+cd backend-v2
+docker compose up -d
+```
+
+Without Docker (point `DATABASE_URL` / `REDIS_URL` at your own Postgres/Redis,
+or rely on the dev fallbacks — see `backend-v2/app/config.py`):
+
+```bash
+cd backend-v2
 python -m pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
+alembic upgrade head
+SEED_ADMIN_EMAIL=you@agency.org python -m app.seed   # first run only; prints generated secrets once
+python -m uvicorn app.main:app --reload --port 8001
+python -m pytest tests/ -v
 ```
 
-**With LLM reasoning (Groq free tier):**
-Get a free API key at [groq.com](https://console.groq.com/keys), then:
-```bash
-export GROQ_API_KEY=your_key_here
-python -m uvicorn app.main:app --reload
-```
-AG-1 will use Groq's Mixtral-8x7B for multimodal reasoning; AG-8 will synthesize summaries. Falls back to rule-based if the key is missing or API is unreachable.
+Set `GROQ_API_KEY` to enable LLM-assisted reasoning; every agent has a
+rule-based fallback, so the platform runs with nothing but Python installed.
 
-Then start the frontend (Next.js + TypeScript + Tailwind, in `frontend-next/`):
+### frontend-next (Next.js + TypeScript + Tailwind)
 
 ```bash
 cd frontend-next
 npm install
-npm run dev      # serves on http://localhost:3000
+npm run dev      # http://localhost:3000, connects to backend-v2
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The frontend is moving from
-one congested dashboard into the operations-console route plan in
-`docs/UX_DESIGN.md`: public landing/auth pages, then authenticated workspaces such
-as `/command`, `/map`, `/alerts`, `/incidents`, `/recommendations`, `/resources`,
-`/routes`, `/medical`, `/citizens`, `/agents`, `/audit`, and `/settings`. The
-current app still connects to `localhost:8000`; log in with a seed user from
-`docs/RUNBOOK.md`.
+For a production-style deploy (Docker Compose, TLS, env var reference), see
+`docs/archive/DEPLOYMENT.md`.
 
-## Deploy it
+## Folder map
 
-Production uses `backend-v2/` + `frontend-next/` — see `docs/DEPLOYMENT.md`
-(Docker Compose in `deploy/`, env templates, first-run `python -m app.seed`).
-
-## Test it
-
-```bash
-cd backend
-python -m pytest tests/test_slice.py -v
-```
-
-## What's real vs. deferred
-
-### Phase 0/1 (now shipping)
-- **Ingestion:** IoT, weather, satellite normalizers (ready for more sources)
-- **AG-1 Disaster Assessment:** Groq/Mixtral-8x7B reasoning (multimodal) with
-  threshold fallback if LLM unavailable
-- **AG-8 Situational Intelligence:** reads full blackboard, synthesizes rolling
-  summary via LLM or rule-based join
-- **Real-time:** WebSocket push of recommendations to map
-- **Frontend:** Next.js + TypeScript + Tailwind app (`frontend-next/`) —
-  currently a command-center map with draggable panels, framer-motion, theming,
-  and per-role layouts. The next UX target is the multi-page operations console
-  documented in `docs/UX_DESIGN.md` and tracked as Phase 3.11 in
-  `docs/MIGRATION_TRACKER.md`.
-
-### Deferred to Phase 2+ (see `docs/MIGRATION_TRACKER.md`)
-- AG-2 (Damage), AG-3 (Rescue), AG-4 (Medical), AG-5 (Resources), AG-6 (Routes),
-  AG-7 (Citizen chat)
-- Severity grid (H3 hashing)
-- Incident clustering
-- Postgres/PostGIS + Redis streaming
+| Path | What it is |
+|---|---|
+| `backend-v2/` | Current backend — FastAPI app (`app/agents/`, `app/orchestration/`, `app/security/`, `app/api/`), Alembic migrations, tests |
+| `backend/` | **Legacy v1** backend, kept in place as a reference only — not deployed, not actively developed |
+| `frontend-next/` | Current frontend — Next.js console/dashboard |
+| `deploy/` | Production Docker Compose + env template |
+| `docs/` | Live design/requirements docs (PRD, TDD, ARCHITECTURE, RUNBOOK, UX_DESIGN) |
+| `docs/design/` | Standalone design references (e.g. the Kinetic Command mockup) |
+| `docs/archive/` | Superseded migration-era docs, kept for history |
