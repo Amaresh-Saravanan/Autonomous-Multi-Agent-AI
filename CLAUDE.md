@@ -4,52 +4,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Autonomous multi-agent disaster-response platform. Synthetic/real sensor events flow through normalizers → a chain of AI agents (rule-based with optional LLM reasoning) → recommendations with mandatory evidence/rationale → a live map dashboard, over HTTP + WebSocket. Currently mid-way through Phase 2 of `docs/MIGRATION_TRACKER.md` (see that file for what's shipped vs. deferred — it's the source of truth, more current than the README).
+Autonomous multi-agent disaster-response platform. Device-authenticated sensor events flow through ingestion normalizers → a queued, conditionally-skipped chain of 8 AI agents on LangGraph (rule-based with optional LLM reasoning) → recommendations with mandatory evidence/rationale, persisted and RBAC/agency-scoped → a live map dashboard, over HTTP + WebSocket. Agents only ever recommend; a human operator approves, rejects, or overrides every recommendation.
 
-Design docs, read in this order for full context: `docs/PRD.md` (requirements/goals), `docs/TDD.md` (architecture/stack), `docs/UX_DESIGN.md` (dashboard design), `docs/MIGRATION_TRACKER.md` (phase-by-phase build status + decisions log).
+Design docs: `docs/PRD.md` (requirements/goals), `docs/TDD.md` (architecture/stack), `docs/ARCHITECTURE.md`, `docs/UX_DESIGN.md` (dashboard design), `docs/RUNBOOK.md` (day-to-day operation). `docs/archive/` holds superseded migration-era docs (the backend-v2 migration write-ups, old phase trackers) — useful for history, not current status.
 
 ## Commands
 
-Run from `backend/`:
+Run from `backend-v2/`:
 
 ```bash
 python -m pip install -r requirements.txt
-python -m uvicorn app.main:app --reload      # start API on :8000
+alembic upgrade head                          # apply DB migrations
+python -m uvicorn app.main:app --reload --port 8001   # start API
 python -m pytest tests/ -v                    # all tests
-python -m pytest tests/test_slice.py -v       # single test file
-python -m pytest tests/test_slice.py::test_name -v   # single test
+python -m pytest tests/test_some_file.py -v   # single test file
 ```
 
-Frontend is a Next.js + TypeScript + Tailwind app in `frontend-next/` (`npm install && npm run dev`, serves on `localhost:3000`, connects to `localhost:8000`). The original Phase 0 `frontend/index.html` shell has been retired.
+Or `docker compose up -d` from `backend-v2/` to bring up Postgres, Redis, and the API together (the API container runs migrations and starts itself).
 
-LLM reasoning is optional — set `GROQ_API_KEY` before starting uvicorn to enable it; everything falls back to rule-based logic without it (see `app/llm.py`).
+Frontend is a Next.js + TypeScript + Tailwind app in `frontend-next/` (`npm install && npm run dev`, serves on `localhost:3000`, connects to `localhost:8001`).
+
+LLM reasoning is optional — set `GROQ_API_KEY` to enable it via `app/infrastructure/llm.py`'s `LLMService`; every agent falls back to rule-based/threshold logic without it. Redis, unlike v1, is **mandatory** here — the blackboard has no silent in-memory fallback (see `app/orchestration/state.py`).
 
 ## Architecture
 
-**Request flow:** `POST /ingest/{source_type}` (`app/main.py`) → `normalizers.normalize()` converts the raw payload into a common `Event` (`app/models.py`) → `orchestrator.run()` invokes every agent in a fixed LangGraph `StateGraph` chain → each agent reads the shared blackboard, produces one `Recommendation`, and the orchestrator merges it back into the blackboard, records it, and (for AG-1) updates the severity grid → the full recommendation list is pushed to all connected `/ws/alerts` WebSocket clients and returned in the HTTP response.
+**Request flow:** `POST /api/v1/ingestion/{source_type}` (`app/api/ingestion.py`, device-authenticated via `app/security/devices.py`) → `IngestionService` (`app/ingestion/service.py`) normalizes the payload into an `Event` and enqueues it, returning `202` immediately — the agent chain runs out-of-request. A background worker thread (`start_worker_thread` in `app/orchestration/graph.py`) dequeues the job and calls `run_for_event()`, which builds a LangGraph `StateGraph` over the fixed `AGENT_CHAIN` (`app/orchestration/router.py`), runs it, detects conflicts (`app/recommendations/conflict.py`), updates the incident's severity from AG-1's result, and pushes the result over Redis pub/sub to connected `/ws/alerts` WebSocket clients (`app/infrastructure/websocket.py`).
 
-**Agent contract** (`agents/base.py`): every agent is a class with `run(incident_id, events, state) -> Recommendation`. A `Recommendation` (`app/models.py`) *must* carry non-empty `evidence` (source event IDs) and `rationale` — `validate_explainable()` is the one enforcement point for the platform's core "every recommendation is explainable" requirement (PRD AC-3/DS-7). Don't add an agent output path that bypasses this.
+**Agent contract** (`app/agents/base.py`): every agent is a `BaseAgent` subclass implementing `execute(context) -> AgentResult`. `run()` is the template method the orchestrator actually calls: it invokes `execute()`, then `validate_result()` — which raises `AgentExecutionError` if `evidence` or `reasoning` is empty, the one enforcement point for the platform's "every recommendation is explainable" invariant. If `execute()` raises for any reason, `run()` catches it and returns a `fallback()` result (status `FAILED`/`DEGRADED`) instead of crashing the pipeline — one agent's failure must never take down the others or the rest of the chain. Don't add an agent output path that bypasses `validate_result()`.
 
-**Orchestration** (`app/orchestrator.py`): agents run in a fixed sequence (AG-1 Disaster → AG-2 Damage → AG-3 Rescue → AG-4 Medical → AG-5 Allocation → AG-6 Route → AG-8 Situational), each agent id is a graph node, edges are just "run next." Every agent runs on every event — there's no trigger-based selective scheduling yet (tracker 2.1 notes this as a known gap). AG-1 runs first because it defines the incident; AG-8 runs last because it summarizes the whole blackboard.
+**Orchestration** (`app/orchestration/`): `router.py` defines the fixed data-dependency order — `AGENT_CHAIN` = AG-1 Disaster → AG-2 Damage → AG-3 Rescue → AG-4 Medical → AG-5 Allocation → AG-6 Route → AG-8 Situational (AG-1 first because it defines the incident, AG-8 last because it summarizes the whole blackboard). Unlike v1, agents are **not** all unconditionally run: `conditions.should_run()` skips dispatch agents (AG-3..AG-6) when the incident's severity is below `MIN_DISPATCH_SEVERITY` (0.3) — real trigger-based scheduling, not v1's "every agent runs on every event." AG-7 (citizen chat) is intentionally excluded from the chain; it's invoked directly from `app/api/citizen.py` since it's request/response, not event-triggered.
 
-**Blackboard** (`app/blackboard.py`): shared state keyed by `incident_id`, one dict per incident with each agent's latest output under its agent id. In-memory dict by default; switches to Redis automatically if `REDIS_URL` is set and reachable, with silent fallback to in-memory on any connection failure. No code should assume Redis is present.
+**Blackboard** (`app/orchestration/state.py`): `BlackboardService` is Redis-backed shared state keyed by incident, one hash field per agent, with optimistic concurrency (WATCH/MULTI) so two workers racing on the same incident never silently lose a write. No in-memory fallback — code should assume Redis is present and reachable.
 
-**Agents** live in `backend/agents/`, one file per agent (`disaster.py`, `damage.py`, `rescue.py`, `medical.py`, `allocation.py`, `route.py`, `situational.py`, `citizen.py`). AG-7 (citizen chat) is invoked directly from `app/main.py`'s `/citizen/chat` endpoint rather than through the orchestrator chain, since it's request/response, not event-triggered.
+**Agents** live in `backend-v2/app/agents/`, one subpackage per agent (`disaster_assessment/`, `damage_assessment/`, `rescue_planning/`, `medical_coordination/`, `resource_allocation/`, `route_optimization/`, `situational_intelligence/`, `citizen_assistance/`).
 
-**LLM usage** (`app/llm.py`): a single Groq client wrapper (`reason(prompt)`), used optionally by agents for reasoning; every agent has a rule-based/threshold fallback so the whole slice runs with nothing but Python installed. Don't make any agent hard-depend on the LLM being available.
+**LLM usage** (`app/infrastructure/llm.py`): `LLMService`, config-driven model name (`LLM_MODEL`, no hardcoded model), lazy-initialized on first call. Every call returns a typed `LLMResult` with an explicit `status` (`SUCCESS`/`DEGRADED`) and `reasoning_mode` (`llm`/`deterministic_fallback`) — a caller that ignores `status` gets `content=None`, not a plausible-looking fallback string, so treating a failure as a success is a visible bug. Don't make any agent hard-depend on the LLM being available.
 
-**Human-in-the-loop**: agents only ever recommend. `POST /recommendations/{id}/approve|reject` (`app/main.py` → `app/recommendations.py`) is how a human decision gets applied; it's audited via `app/audit.py`. When updating this, note that the blackboard is only overwritten with a decision if the recommendation is still the agent's *latest* one (stale approvals must not resurrect an older state) — see `_decide()` in `app/main.py`.
+**Human-in-the-loop & RBAC**: `app/recommendations/service.py`'s `decide()` applies approve/reject/override — only a still-`PENDING` recommendation can be decided; a second decision on an already-decided recommendation is rejected outright (v2's equivalent of "stale approvals must not resurrect an older state"). Role/permission checks live in `app/security/permissions.py` (`VIEWER < OPERATOR < ADMIN`, `require_role`/`require_permission`/`require_agency_access`) and are enforced in the backend service layer — never in the frontend. Situation-level agents (AG-1, AG-2, AG-8 — `GLOBAL_AGENTS` in `app/recommendations/service.py`) are visible to any authenticated user; resource-targeted agents (AG-3..AG-6) are scoped to the owning agency plus ADMIN. A recommendation whose agency can't be resolved stays ADMIN-only — never implicitly global.
 
-**Severity grid**: `app/geo_utils.py` does lat/lon rounding (geohash-lite quantization) for grid cells — deliberately not the `h3-py` library (see decisions log in `docs/MIGRATION_TRACKER.md`, 2026-07-28). `app/severity_grid.py` accumulates per-incident cell severities and serves them as GeoJSON via `GET /incidents/{id}/severity`.
+**Severity grid**: `app/geo.py` does lat/lon rounding (geohash-lite quantization) for grid cells — deliberately not the `h3-py` library (ported decision from v1, see `docs/archive/BACKEND_V2_MIGRATION_ANALYSIS.md`).
 
 ## Git workflow
 
-- After finishing each `docs/MIGRATION_TRACKER.md` item (not each full Phase), run the backend test suite (`python -m pytest tests/ -v` from `backend/`). If it's green, commit and push directly to `origin main` (local `master` tracks `origin/main`) **without asking for confirmation first**.
-- If the suite fails, do not push — stop and surface the failure instead.
-- This standing authorization covers routine tracker-item pushes only. It does not cover force-pushes, history rewrites, or pushing to any branch other than `main`.
+- Run the backend-v2 test suite (`python -m pytest tests/ -v` from `backend-v2/`) after any change before considering it done.
+- Always ask for confirmation before pushing to `main` (or any branch). There is no standing push authorization — confirm first, every time.
+- Never force-push or rewrite history without explicit request.
 
 ## Conventions specific to this repo
 
-- `ponytail:` comments mark a deliberate simplification with a known ceiling and an explicit upgrade trigger (e.g. straight-line routing instead of real OSRM in `agents/route.py`, fixed "operator" actor string instead of real RBAC identity in `app/main.py`). When you hit one, check whether its stated upgrade condition is now true before treating it as tech debt to silently "fix."
-- `docs/MIGRATION_TRACKER.md`'s status table and Decisions Log are kept up to date as work lands — check it before assuming a feature (e.g. real OSRM routing, OR-Tools VRP, Kafka, RBAC) is implemented; several agents intentionally use simpler heuristics than the original TDD design until the tracker says otherwise.
-- Every new agent must satisfy `Recommendation.validate_explainable()` — non-empty `evidence` and `rationale` — this is treated as a hard platform invariant, not a style preference.
+- `ponytail:` comments mark a deliberate simplification with a known ceiling and an explicit upgrade trigger (e.g. the lat/lon grid quantization instead of `h3-py` in `app/geo.py`, straight-line routing instead of real OSRM). When you hit one, check whether its stated upgrade condition is now true before treating it as tech debt to silently "fix."
+- `docs/archive/` holds historical migration/phase-tracker docs — useful for *why* a decision was made, not for *current* status; check the current code (and these docs' dates) before assuming something described there still applies.
+- Every agent must satisfy `BaseAgent.validate_result()` — non-empty `evidence` and `reasoning` — this is treated as a hard platform invariant, not a style preference.
+- `backend/` is the legacy v1 backend, kept as a reference only. It is not deployed and should not be modified for new feature work.
