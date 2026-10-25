@@ -21,6 +21,7 @@ from app.config import get_settings
 from app.errors import register_exception_handlers
 from app.infrastructure.redis import get_redis_client
 from app.infrastructure.websocket import get_connection_manager, run_pubsub_bridge
+from app.ingestion.pollers.runner import start_poller_thread
 from app.observability.logging import configure_logging
 from app.observability.metrics import API_REQUEST_LATENCY
 from app.orchestration.graph import start_worker_thread
@@ -32,12 +33,14 @@ configure_logging(settings.log_level)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     stop_event = start_worker_thread()
+    poller_stop_event = start_poller_thread()
     pubsub_stop = asyncio.Event()
     pubsub_task = asyncio.create_task(
         run_pubsub_bridge(get_redis_client(), get_connection_manager(), pubsub_stop)
     )
     yield
     stop_event.set()
+    poller_stop_event.set()
     pubsub_stop.set()
     await pubsub_task
 
