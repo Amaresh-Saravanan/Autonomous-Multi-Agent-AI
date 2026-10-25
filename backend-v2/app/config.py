@@ -40,6 +40,30 @@ class Settings(BaseSettings):
 
     map_provider: str = "leaflet"
 
+    pollers_enabled: bool = False
+    poll_interval_seconds: int = 300
+    poller_min_magnitude: float = 2.5
+    # "name:lat:lon,name:lat:lon,..." -- string, not list, so pydantic-settings
+    # doesn't try to JSON-parse a plain CSV env var (see cors_origins above).
+    poller_points: str = "Erode:11.341:77.7172,Chennai:13.0827:80.2707,Mumbai:19.0760:72.8777"
+    # "min_lon,min_lat,max_lon,max_lat" -- same ordering as SatelliteEvent.area_bounds.
+    poller_bbox: str = "68,6,98,38"
+
+    @property
+    def poller_points_list(self) -> list[tuple[str, float, float]]:
+        points = []
+        for entry in self.poller_points.split(","):
+            if not entry.strip():
+                continue
+            name, lat, lon = entry.split(":")
+            points.append((name.strip(), float(lat), float(lon)))
+        return points
+
+    @property
+    def poller_bbox_tuple(self) -> tuple[float, float, float, float]:
+        min_lon, min_lat, max_lon, max_lat = (float(v) for v in self.poller_bbox.split(","))
+        return min_lon, min_lat, max_lon, max_lat
+
     @model_validator(mode="after")
     def _require_jwt_secret_outside_dev(self) -> "Settings":
         if self.jwt_secret:
