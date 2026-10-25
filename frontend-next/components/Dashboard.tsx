@@ -34,6 +34,7 @@ export default function Dashboard() {
     severity: true,
     routes: true,
     resources: true,
+    dataSources: true,
   });
   const [editMode, setEditMode] = useState(false);
 

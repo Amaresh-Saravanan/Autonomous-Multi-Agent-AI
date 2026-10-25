@@ -15,6 +15,7 @@ import type {
   ResourceCategory,
   ResourcesResponse,
 } from "@/lib/types";
+import { MOCK_STATIONS, SOURCE_COLORS, SOURCE_LABELS } from "@/lib/mock-data-sources";
 
 // maplibre-gl builds its worker URL as `new URL("./maplibre-gl-worker.mjs",
 // import.meta.url)` with a dynamically constructed filename, which bundlers
@@ -35,7 +36,7 @@ interface MapViewProps {
   resources: ResourcesResponse | null;
   recommendations: Recommendation[];
   severityGeojson: GeoJSON.FeatureCollection | null;
-  layersVisible: { severity: boolean; routes: boolean; resources: boolean };
+  layersVisible: { severity: boolean; routes: boolean; resources: boolean; dataSources: boolean };
   // Optional: incident pins (tracker 3.11.5 /map). Dashboard's /command usage
   // omits these and behaves exactly as before.
   incidents?: IncidentSummary[];
@@ -90,6 +91,7 @@ export default function MapView({
   const resourceMarkersRef = useRef<Marker[]>([]);
   const incidentMarkersRef = useRef<Marker[]>([]);
   const recMarkersRef = useRef<Map<string, Marker>>(new Map());
+  const dataSourceMarkersRef = useRef<Marker[]>([]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -142,6 +144,20 @@ export default function MapView({
           "line-width": 3,
         },
       });
+      // Data source station pins — mock telemetry origins, static positions
+      // (lib/mock-data-sources.ts); fine to add once at map load since they
+      // don't depend on any fetched prop. Initial visibility is applied here
+      // directly (not left to the toggle effect below) since pages that
+      // never change layersVisible.dataSources after mount (e.g. RoutesPage)
+      // would otherwise never get a second effect run to apply it.
+      dataSourceMarkersRef.current = MOCK_STATIONS.map((station) => {
+        const marker = new Marker({ color: SOURCE_COLORS[station.source_type] })
+          .setLngLat([station.lon, station.lat])
+          .setPopup(new Popup().setText(`${SOURCE_LABELS[station.source_type]}: ${station.label}`))
+          .addTo(map);
+        marker.getElement().style.display = layersVisible.dataSources ? "" : "none";
+        return marker;
+      });
       loadedRef.current = true;
     });
 
@@ -174,6 +190,26 @@ export default function MapView({
       );
     });
   }, [resources]);
+
+  // Periodic pulse on a random data-source station — simulates a call just
+  // landing, so the mock stations read as live without needing a real feed.
+  useEffect(() => {
+    const pulseId = setInterval(() => {
+      const markers = dataSourceMarkersRef.current;
+      if (markers.length === 0) return;
+      const el = markers[Math.floor(Math.random() * markers.length)].getElement();
+      el.classList.add("pulse-glow");
+      setTimeout(() => el.classList.remove("pulse-glow"), 1200);
+    }, 2500);
+    return () => clearInterval(pulseId);
+  }, []);
+
+  // Data source layer visibility toggle
+  useEffect(() => {
+    dataSourceMarkersRef.current.forEach((m) => {
+      m.getElement().style.display = layersVisible.dataSources ? "" : "none";
+    });
+  }, [layersVisible.dataSources]);
 
   // Incident pins (tracker 3.11.5 /map) — plots every known incident from
   // GET /incidents, not just ones with a live recommendation this session.

@@ -25,6 +25,7 @@ export default function MapPage() {
     severity: true,
     routes: true,
     resources: true,
+    dataSources: true,
   });
 
   const refreshIncidents = useCallback(() => {

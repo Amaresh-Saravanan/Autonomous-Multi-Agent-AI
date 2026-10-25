@@ -4,6 +4,7 @@ export interface LayersVisible {
   severity: boolean;
   routes: boolean;
   resources: boolean;
+  dataSources: boolean;
 }
 
 export default function LayersToggle({
@@ -44,6 +45,15 @@ export default function LayersToggle({
           className="accent-console-primary"
         />
         Resources
+      </label>
+      <label className="flex cursor-pointer items-center gap-2 font-console-body-compact text-console-body-compact text-console-on-surface-variant hover:text-console-on-surface">
+        <input
+          type="checkbox"
+          checked={value.dataSources}
+          onChange={toggle("dataSources")}
+          className="accent-console-primary"
+        />
+        Data sources
       </label>
     </div>
   );

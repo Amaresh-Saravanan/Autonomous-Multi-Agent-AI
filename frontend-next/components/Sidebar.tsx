@@ -20,6 +20,7 @@ import {
   ChevronsRight,
   ShieldCheck,
   UserPlus,
+  Radio,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -51,6 +52,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/routes", label: "Routes", minRole: "viewer", icon: RouteIcon },
   { href: "/medical", label: "Medical", minRole: "viewer", icon: Stethoscope },
   { href: "/citizens", label: "Citizens", minRole: "viewer", icon: Users },
+  { href: "/data-sources", label: "Data Sources", minRole: "viewer", icon: Radio },
   { href: "/agents", label: "Agents", minRole: "operator", icon: Bot },
   { href: "/audit", label: "Audit", minRole: "admin", icon: History },
   { href: "/access", label: "Access", minRole: "admin", icon: UserPlus },

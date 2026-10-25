@@ -87,6 +87,22 @@ export default function RecCard({
       <div className="mt-1 font-console-data-tabular text-[10px] text-console-outline">
         confidence {rec.confidence.toFixed(2)} · {rec.status}
       </div>
+      {rec.evidence.length > 0 && (
+        <div className="mt-console-sm flex flex-wrap items-center gap-1">
+          <span className="font-console-label-caps text-[9px] uppercase text-console-outline">
+            Evidence:
+          </span>
+          {rec.evidence.map((eventId) => (
+            <span
+              key={eventId}
+              title={eventId}
+              className="rounded border border-console-outline-variant/30 bg-console-surface px-1.5 py-0.5 font-console-data-tabular text-[9px] text-console-on-surface-variant"
+            >
+              {eventId.slice(0, 8)}
+            </span>
+          ))}
+        </div>
+      )}
       {rec.status === "pending" && canDecide && (
         <div className="mt-console-sm flex gap-2">
           <button

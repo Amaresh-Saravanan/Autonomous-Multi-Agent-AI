@@ -13,7 +13,7 @@ import type { LayersVisible } from "./LayersToggle";
 // open/blocked is derivable from details.blocked today (tracker BE-4).
 export default function RoutesPage() {
   const { resources, recommendations, severityGeojson } = useOperationsData();
-  const [layersVisible] = useState<LayersVisible>({ severity: false, routes: true, resources: true });
+  const [layersVisible] = useState<LayersVisible>({ severity: false, routes: true, resources: true, dataSources: false });
 
   const routeRecs = recommendations.filter((r) => r.agent_id === "AG-6" && r.details?.route_line);
 
