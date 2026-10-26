@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono, Instrument_Sans, Instrument_Serif, JetBrains_Mono, Oswald } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  IBM_Plex_Mono,
+  IBM_Plex_Sans,
+  Instrument_Sans,
+  Instrument_Serif,
+  JetBrains_Mono,
+  Oswald,
+} from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
@@ -19,6 +28,19 @@ const instrumentSerif = Instrument_Serif({ subsets: ["latin"], weight: "400", va
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald" });
 
+// Console typography: Plex Sans for UI text, Plex Mono for every number, ID and
+// timestamp (both ship tabular figures). Loaded via next/font, no network link.
+const plexSans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-plex-sans",
+});
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-plex-mono",
+});
+
 export const metadata: Metadata = {
   title: "EOC Command Dashboard",
   description: "Autonomous multi-agent disaster-response command dashboard",
@@ -29,7 +51,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-theme="dark"
-      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} ${oswald.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} ${oswald.variable} ${plexSans.variable} ${plexMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

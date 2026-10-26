@@ -119,16 +119,15 @@
   --color-console-background: #10131a;
   --color-console-on-background: #e1e2ec;
 
-  /* Geist for UI chrome (already loaded as --font-geist-sans, layout.tsx);
-     JetBrains Mono for all data/numbers/timestamps (already loaded as
-     --font-jetbrains for the landing page's .font-mono — reused, not
-     re-fetched). */
-  --font-console-display-header: var(--font-geist-sans), sans-serif;
-  --font-console-body-compact: var(--font-geist-sans), sans-serif;
-  --font-console-body-sm: var(--font-geist-sans), sans-serif;
-  --font-console-label-caps: var(--font-geist-sans), sans-serif;
-  --font-console-data-tabular: var(--font-jetbrains), monospace;
-  --font-console-data-metric-lg: var(--font-jetbrains), monospace;
+  /* IBM Plex Sans for UI chrome, IBM Plex Mono for all data/numbers/
+     timestamps (both loaded in layout.tsx via next/font). JetBrains Mono stays
+     loaded for the landing page's .font-mono. */
+  --font-console-display-header: var(--font-plex-sans), sans-serif;
+  --font-console-body-compact: var(--font-plex-sans), sans-serif;
+  --font-console-body-sm: var(--font-plex-sans), sans-serif;
+  --font-console-label-caps: var(--font-plex-sans), sans-serif;
+  --font-console-data-tabular: var(--font-plex-mono), monospace;
+  --font-console-data-metric-lg: var(--font-plex-mono), monospace;
 
   --text-console-display-header: 14px;
   --text-console-display-header--line-height: 20px;
@@ -154,7 +153,7 @@
   --text-console-label-caps: 11px;
   --text-console-label-caps--line-height: 14px;
   --text-console-label-caps--font-weight: 600;
-  --text-console-label-caps--letter-spacing: 0.08em;
+  --text-console-label-caps--letter-spacing: 0.12em;
 
   --spacing-unit: 4px;
   --spacing-console-xs: 4px;
