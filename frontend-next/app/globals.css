@@ -372,6 +372,45 @@ body {
   opacity: 0.5;
 }
 
+/* Map popups in the console panel style (maplibre ships a white popup). */
+.maplibregl-popup-content {
+  background: var(--color-console-surface-container);
+  color: var(--color-console-on-surface);
+  border: 1px solid var(--color-console-outline-variant);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: var(--font-console-body-sm);
+  font-size: 12px;
+  line-height: 1.45;
+  box-shadow: var(--shadow-panel);
+}
+.maplibregl-popup-close-button {
+  color: var(--color-console-on-surface-variant);
+}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  border-bottom-color: var(--color-console-surface-container);
+}
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  border-top-color: var(--color-console-surface-container);
+}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--color-console-surface-container);
+}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--color-console-surface-container);
+}
+.maplibregl-ctrl-attrib {
+  background: transparent !important;
+  color: var(--color-console-outline);
+}
+.maplibregl-ctrl-attrib a {
+  color: var(--color-console-outline);
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
