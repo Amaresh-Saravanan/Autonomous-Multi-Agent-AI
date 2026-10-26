@@ -36,9 +36,13 @@ export default function ThemeToggle() {
       onClick={toggle}
       aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
       title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-      className="flex cursor-pointer items-center justify-center rounded-md p-1.5 text-console-on-surface-variant transition-colors hover:bg-console-surface-bright/50 hover:text-console-on-surface active:scale-95"
+      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-console-on-surface-variant transition-colors hover:bg-console-surface-bright/50 hover:text-console-on-surface active:scale-95"
     >
-      {theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+      {theme === "dark" ? (
+        <Moon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+      ) : (
+        <Sun className="h-[18px] w-[18px]" strokeWidth={1.75} />
+      )}
     </button>
   );
 }
