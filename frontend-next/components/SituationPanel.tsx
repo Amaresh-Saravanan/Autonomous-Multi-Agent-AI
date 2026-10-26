@@ -1,25 +1,7 @@
 "use client";
 
 import type { Recommendation } from "@/lib/types";
-
-function sevClass(sev: number) {
-  if (sev >= 0.85) return "critical";
-  if (sev >= 0.5) return "high";
-  return "low";
-}
-
-const BORDER_COLOR: Record<string, string> = {
-  low: "var(--sev-low)",
-  high: "var(--sev-high)",
-  critical: "var(--sev-critical)",
-};
-
-// Severity is never encoded by color alone (UX_DESIGN §6): icon + text label too.
-const SEV_LABEL: Record<string, string> = {
-  low: "◆ LOW",
-  high: "▲ HIGH",
-  critical: "⚠ CRITICAL",
-};
+import SeverityBadge, { severityClass } from "./SeverityBadge";
 
 export default function SituationPanel({ summary }: { summary?: Recommendation }) {
   if (!summary) {
@@ -29,15 +11,14 @@ export default function SituationPanel({ summary }: { summary?: Recommendation }
       </div>
     );
   }
-  const cls = sevClass(summary.severity);
   return (
-    <div>
-      <span
-        className="mb-1.5 inline-block rounded px-1.5 py-0.5 font-console-label-caps text-[9px] font-bold tracking-wide"
-        style={{ color: BORDER_COLOR[cls], border: `1px solid ${BORDER_COLOR[cls]}` }}
-      >
-        {SEV_LABEL[cls]}
-      </span>
+    <div className="flex flex-col gap-console-sm pt-1">
+      <div className="flex items-center gap-console-sm">
+        <SeverityBadge level={severityClass(summary.severity)} />
+        <span className="font-console-data-tabular text-[12px] text-console-on-surface-variant">
+          {summary.severity.toFixed(2)}
+        </span>
+      </div>
       <p className="font-console-body-sm text-console-body-sm leading-relaxed text-console-on-surface-variant">
         {summary.rationale}
       </p>

@@ -13,6 +13,25 @@ import SituationPanel from "./SituationPanel";
 import ResourcesPanel from "./ResourcesPanel";
 import CitizenInboxPanel from "./CitizenInboxPanel";
 import IngestForm from "./IngestForm";
+import MapLegend from "./MapLegend";
+
+// Alerts arrive over the WebSocket, so the Alerts tile shows whether that
+// socket is up. wsStatus is "live" when connected; anything else (connecting…,
+// reconnecting…) is shown as-is in amber.
+function ConnectionBadge({ wsStatus }: { wsStatus: string }) {
+  const live = wsStatus === "live";
+  const color = live ? "var(--sev-low)" : "var(--sev-moderate)";
+  return (
+    <span
+      role="status"
+      className="flex items-center gap-1.5 font-console-label-caps text-[10px] font-semibold uppercase tracking-[0.08em]"
+      style={{ color }}
+    >
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: "currentColor" }} />
+      {live ? "Connected" : wsStatus}
+    </span>
+  );
+}
 
 // /command body (plan Phase M carries this over unchanged; trimming it down
 // to the cockpit spec -- top-3 alerts only, etc. -- is Phase O, not this one).
@@ -53,6 +72,7 @@ export default function Dashboard() {
     {
       key: "alerts",
       title: "Alerts",
+      badge: <ConnectionBadge wsStatus={wsStatus} />,
       content: (
         <AlertsPanel
           recommendations={recommendations}
@@ -66,7 +86,6 @@ export default function Dashboard() {
       content: (
         <RecommendationsPanel
           recommendations={recommendations}
-          wsStatus={wsStatus}
           onDecided={(r) => ingestRecommendations([r])}
         />
       ),
@@ -93,7 +112,7 @@ export default function Dashboard() {
       <button
         onClick={() => setEditMode((v) => !v)}
         aria-pressed={editMode}
-        className={`absolute top-3 right-3 z-40 flex cursor-pointer items-center gap-2 rounded-lg border px-console-md py-console-sm font-console-label-caps text-console-label-caps backdrop-blur-md transition-colors ${
+        className={`absolute top-3 right-3 z-40 flex cursor-pointer items-center gap-2 rounded-lg border px-console-md py-console-sm font-console-body-sm text-[12px] font-semibold backdrop-blur-md transition-colors ${
           editMode
             ? "border-console-primary bg-console-primary/20 text-console-on-surface"
             : "border-console-outline-variant/30 bg-console-surface-container/80 text-console-on-surface hover:bg-console-surface-bright/80"
@@ -107,6 +126,7 @@ export default function Dashboard() {
         severityGeojson={severityGeojson}
         layersVisible={layersVisible}
       />
+      <MapLegend />
       <DashboardGrid tiles={tiles} editMode={editMode} role={user.role} />
       {/* Screen readers announce new critical alerts even when the operator
           isn't looking at the panel (UX_DESIGN §6). */}

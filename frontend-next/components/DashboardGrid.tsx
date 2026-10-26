@@ -66,6 +66,8 @@ export interface TileDef {
   key: string;
   title: string;
   content: ReactNode;
+  // Optional status shown at the right of the tile header (e.g. connection state).
+  badge?: ReactNode;
 }
 
 export default function DashboardGrid({
@@ -112,7 +114,7 @@ export default function DashboardGrid({
           {tiles.map((tile) => (
             <div key={tile.key} className="pointer-events-auto">
               <div
-                className={`flex h-full flex-col overflow-hidden rounded-xl border border-console-outline-variant/40 bg-console-surface/80 shadow-lg backdrop-blur-xl ${
+                className={`flex h-full flex-col overflow-hidden rounded-[10px] border border-console-outline-variant/40 bg-console-surface/90 shadow-lg backdrop-blur-xl ${
                   editMode ? "outline-2 outline-dashed outline-console-primary" : ""
                 }`}
               >
@@ -121,8 +123,13 @@ export default function DashboardGrid({
                     editMode ? "cursor-move bg-console-surface-container/50" : ""
                   }`}
                 >
-                  <span className="font-console-label-caps text-console-label-caps uppercase text-console-on-surface">
-                    {tile.title}
+                  {/* Badge sits next to the title, not at the far right, so the
+                      floating "Edit layout" button never covers it. */}
+                  <span className="flex items-center gap-console-sm">
+                    <span className="font-console-label-caps text-console-label-caps uppercase text-console-on-surface-variant">
+                      {tile.title}
+                    </span>
+                    {tile.badge}
                   </span>
                   {editMode && (
                     <span className="text-console-on-surface-variant" aria-hidden>
