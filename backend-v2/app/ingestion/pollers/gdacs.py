@@ -9,13 +9,7 @@ tropical cyclone, flood, drought, wildfire), hardcoded because the API
 has no "list valid eventtypes" endpoint to query it from. VO (volcano) is
 deliberately excluded: confirmed live that the endpoint 404s for it every
 time (not a transient failure), so it's not worth polling or retrying.
-FL (flood) has also been observed 404ing live on some polls -- GDACS's
-MAP endpoint 404s per-eventtype intermittently, not just for VO, so this
-isn't a fixed "which types work" list; `_is_retryable` already treats any
-404 as permanent-for-this-call rather than retrying it, and `poll()` only
-reports an overall failure if every eventtype fails, so this is handled
-regardless of which type 404s on a given run. Add VO back only if GDACS
-ever starts serving that eventtype at all.
+Add it back if GDACS ever starts serving that eventtype.
 
 Mapped to the `weather` normalizer, not `satellite`: GDACS gives a point
 location (not an imagery tile), and SatelliteEvent requires real
