@@ -6,11 +6,9 @@ import type { Recommendation } from "@/lib/types";
 
 export default function RecommendationsPanel({
   recommendations,
-  wsStatus,
   onDecided,
 }: {
   recommendations: Recommendation[];
-  wsStatus: string;
   onDecided: (updated: Recommendation) => void;
 }) {
   const sorted = [...recommendations].sort((a, b) =>
@@ -18,10 +16,7 @@ export default function RecommendationsPanel({
   );
 
   return (
-    <div>
-      <div className="mb-3 font-console-data-tabular text-console-data-tabular text-console-on-surface-variant">
-        {wsStatus}
-      </div>
+    <div className="pt-1">
       <AnimatePresence initial={false}>
         {sorted.map((rec, i) => (
           <RecCard key={rec.rec_id} rec={rec} index={i} onDecided={onDecided} />

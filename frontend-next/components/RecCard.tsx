@@ -5,26 +5,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 import { decideRecommendation } from "@/lib/api";
 import type { Recommendation } from "@/lib/types";
-
-function sevClass(sev: number) {
-  if (sev >= 0.85) return "critical";
-  if (sev >= 0.5) return "high";
-  return "low";
-}
-
-const BORDER_COLOR: Record<string, string> = {
-  low: "var(--sev-low)",
-  high: "var(--sev-high)",
-  critical: "var(--sev-critical)",
-};
-
-// Severity is never encoded by color alone (accessibility, life-critical
-// context — UX_DESIGN §6): each level carries an icon + a text label too.
-const SEV_LABEL: Record<string, string> = {
-  low: "◆ LOW",
-  high: "▲ HIGH",
-  critical: "⚠ CRITICAL",
-};
+import SeverityBadge, { SEVERITY_COLOR, severityClass } from "./SeverityBadge";
 
 export default function RecCard({
   rec,
@@ -38,12 +19,13 @@ export default function RecCard({
   const { token, user } = useAuth();
   const reduce = useReducedMotion();
   const [error, setError] = useState<string | null>(null);
-  const cls = sevClass(rec.severity);
+  const cls = severityClass(rec.severity);
   // Viewer role can read recommendations but not decide them (UX_DESIGN §3.4:
   // Recommendations = "Read" for viewer, "Approve/reject" for operator+) —
   // the backend already 403s viewer approve/reject calls; hiding the
   // buttons instead of showing an alert() on failure (tracker 3.11.7).
   const canDecide = user?.role !== "viewer";
+  const confidencePct = Math.max(0, Math.min(1, rec.confidence)) * 100;
 
   async function decide(action: "approve" | "reject") {
     setError(null);
@@ -65,57 +47,77 @@ export default function RecCard({
       animate={{ opacity: 1, y: 0 }}
       exit={reduce ? { opacity: 0 } : { opacity: 0, x: 40 }}
       transition={{ duration: 0.2, ease: "easeOut", delay: reduce ? 0 : index * 0.04 }}
-      className={`mb-console-sm rounded-md border border-console-outline-variant/20 bg-console-surface-container/60 px-console-md py-console-sm ${
+      className={`mb-console-sm rounded-lg border border-console-outline-variant/20 bg-console-surface-container/60 px-console-md py-console-md ${
         cls === "critical" ? "pulse-glow" : ""
       }`}
-      style={{ borderLeft: `4px solid ${BORDER_COLOR[cls]}` }}
+      style={{ borderLeft: `3px solid ${SEVERITY_COLOR[cls]}` }}
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="font-console-data-tabular text-console-data-tabular font-semibold tracking-wide text-console-on-surface">
-          {rec.agent_id} · {rec.action}
+        <span className="font-console-data-tabular text-[11px] font-semibold text-console-primary">
+          {rec.agent_id}
+        </span>
+        <SeverityBadge level={cls} />
+      </div>
+      <div className="mt-1.5 font-console-body-compact text-[14px] font-semibold leading-snug text-console-on-surface">
+        {rec.action}
+      </div>
+
+      <div className="mt-console-sm flex items-center gap-console-sm">
+        <span className="font-console-label-caps text-[9px] font-semibold uppercase tracking-[0.12em] text-console-outline">
+          Confidence
+        </span>
+        <div className="h-1 flex-1 rounded-full bg-console-outline-variant/30">
+          <div
+            className="h-1 rounded-full bg-console-primary"
+            style={{ width: `${confidencePct}%` }}
+          />
         </div>
-        <span
-          className="shrink-0 rounded px-1.5 py-0.5 font-console-label-caps text-[9px] font-bold tracking-wide"
-          style={{ color: BORDER_COLOR[cls], border: `1px solid ${BORDER_COLOR[cls]}` }}
-        >
-          {SEV_LABEL[cls]}
+        <span className="font-console-data-tabular text-[11px] text-console-on-surface-variant">
+          {rec.confidence.toFixed(2)}
         </span>
       </div>
-      <div className="mt-1 font-console-body-sm text-console-body-sm text-console-on-surface-variant">
-        {rec.rationale}
+
+      {/* Rationale and evidence are always shown — every recommendation must
+          be explainable. */}
+      <div className="mt-console-md font-console-label-caps text-[9px] font-semibold uppercase tracking-[0.12em] text-console-outline">
+        Rationale
       </div>
-      <div className="mt-1 font-console-data-tabular text-[10px] text-console-outline">
-        confidence {rec.confidence.toFixed(2)} · {rec.status}
+      <div className="mt-0.5 font-console-body-sm text-console-body-sm leading-relaxed text-console-on-surface-variant">
+        {rec.rationale}
       </div>
       {rec.evidence.length > 0 && (
         <div className="mt-console-sm flex flex-wrap items-center gap-1">
-          <span className="font-console-label-caps text-[9px] uppercase text-console-outline">
-            Evidence:
+          <span className="font-console-label-caps text-[9px] font-semibold uppercase tracking-[0.12em] text-console-outline">
+            Evidence
           </span>
           {rec.evidence.map((eventId) => (
             <span
               key={eventId}
               title={eventId}
-              className="rounded border border-console-outline-variant/30 bg-console-surface px-1.5 py-0.5 font-console-data-tabular text-[9px] text-console-on-surface-variant"
+              className="rounded border border-console-outline-variant/30 bg-console-surface px-1.5 py-0.5 font-console-data-tabular text-[10px] text-console-on-surface-variant"
             >
               {eventId.slice(0, 8)}
             </span>
           ))}
         </div>
       )}
+      <div className="mt-console-sm font-console-data-tabular text-[10px] uppercase tracking-wide text-console-outline">
+        {rec.status}
+      </div>
+
       {rec.status === "pending" && canDecide && (
-        <div className="mt-console-sm flex gap-2">
+        <div className="mt-console-md flex gap-2">
           <button
             onClick={() => decide("approve")}
-            className="flex-1 cursor-pointer rounded border border-console-primary/30 bg-console-primary/10 py-1 font-console-label-caps text-[10px] text-console-primary transition-colors hover:bg-console-primary/20"
+            className="h-8 flex-1 cursor-pointer rounded-md bg-console-primary font-console-body-sm text-[12px] font-semibold text-console-on-primary transition-colors hover:bg-console-primary-container"
           >
-            APPROVE
+            Approve
           </button>
           <button
             onClick={() => decide("reject")}
-            className="flex-1 cursor-pointer rounded border border-console-outline-variant/30 bg-console-surface py-1 font-console-label-caps text-[10px] text-console-on-surface-variant transition-colors hover:bg-console-surface-bright"
+            className="h-8 flex-1 cursor-pointer rounded-md border border-console-outline-variant/60 bg-transparent font-console-body-sm text-[12px] font-semibold text-console-on-surface transition-colors hover:bg-console-surface-bright"
           >
-            REJECT
+            Reject
           </button>
         </div>
       )}
@@ -125,7 +127,7 @@ export default function RecCard({
         </div>
       )}
       {rec.status === "pending" && !canDecide && (
-        <div className="mt-console-sm font-console-label-caps text-[9px] uppercase text-console-outline">
+        <div className="mt-console-sm font-console-label-caps text-[9px] uppercase tracking-[0.12em] text-console-outline">
           View only — operator approval required
         </div>
       )}
